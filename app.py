@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 
 
 # 1. IMPORTACIONES DE LÓGICA (TODAS AL PRINCIPIO)
@@ -9,17 +9,122 @@ from gestion_areas_logic import create_area, read_areas, update_area, delete_are
 from gestion_tratamientos_logic import create_tratamiento, read_tratamientos, update_tratamiento, delete_tratamiento
 from gestion_estancias_logic import create_estancia, read_estancias, update_estancia, delete_estancia
 from gestion_participaciones_logic import create_participacion, read_participaciones, update_participacion, delete_participacion
+from auth_logic import validar_login
+from functools import wraps
 
 #  CONFIGURACIÓN DE FLASK 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_para_flash' 
 
+def requiere_roles(*roles_permitidos):
+    """
+    Uso:
+    @requiere_roles('admin', 'medico')
+    def gestion_pacientes():
+        ...
+    """
+    def decorador(vista):
+        @wraps(vista)
+        def vista_envuelta(*args, **kwargs):
+            rol_usuario = session.get('rol')
+
+            # Si por alguna razón no hay rol, lo mandamos a login
+            if not rol_usuario:
+                return redirect(url_for('login'))
+
+            # Si su rol no está en la lista permitida:
+            if rol_usuario not in roles_permitidos:
+                flash("No tienes permiso para acceder a esta sección.", "danger")
+
+                # Redirección amigable según rol
+                if rol_usuario == 'medico':
+                    return redirect(url_for('gestion_pacientes'))
+                elif rol_usuario in ('enfermera', 'administrativo'):
+                    return redirect(url_for('gestion_hospitalizaciones'))
+                else:
+                    return redirect(url_for('login'))
+
+            # Si sí tiene permiso, se ejecuta la vista normal
+            return vista(*args, **kwargs)
+        return vista_envuelta
+    return decorador
+
+@app.before_request
+def requerir_login():
+    # Permitir acceso sin login a la página de login y a archivos estáticos
+    if request.endpoint in ('login', 'static'):
+        return
+
+    # Si no hay usuario en sesión, redirigir a login
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+from flask import session, redirect, url_for, flash
+
 @app.route('/')
 def index():
-    return redirect(url_for('gestion_empleados'))
+    rol = session.get('rol')
+
+    # Si no hay sesión → login
+    if not rol:
+        return redirect(url_for('login'))
+
+    # Redirección según rol
+    if rol == 'admin':
+        return redirect(url_for('gestion_empleados'))
+
+    elif rol == 'medico':
+        # El médico entra directo a Pacientes
+        return redirect(url_for('gestion_pacientes'))
+
+    elif rol == 'enfermera':
+        # La enfermera también entra a Pacientes
+        return redirect(url_for('gestion_pacientes'))
+
+    elif rol == 'administrativo':
+        # Administrativo directamente a Hospitalizaciones
+        return redirect(url_for('gestion_hospitalizaciones'))
+
+    # Rol raro / error
+    flash("Rol no reconocido, inicia sesión de nuevo.", "danger")
+    return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        user = validar_login(username, password)
+
+        if user:
+            # Guardar datos básicos en sesión
+            session['user_id'] = user['id_usuario']
+            session['username'] = user['username']
+            session['rol'] = user['rol']
+
+            flash(f"Bienvenido, {user['username']} ({user['rol']})", "success")
+            return redirect(url_for('index'))
+        else:
+            flash("Usuario o contraseña incorrectos.", "danger")
+            return redirect(url_for('login'))
+
+    # Si ya está logueado, mandarlo directo a empleados
+    if 'user_id' in session:
+        return redirect(url_for('gestion_empleados'))
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash("Sesión cerrada correctamente.", "info")
+    return redirect(url_for('login'))
 
 # GESTION EMPLEADOS
 @app.route('/empleados', methods=['GET', 'POST'])
+@requiere_roles('admin')
 def gestion_empleados():
     if request.method == 'POST':
         
@@ -77,6 +182,7 @@ def gestion_empleados():
 
 # GESTIÓN DE PACIENTES
 @app.route('/pacientes', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
 def gestion_pacientes():
     if request.method == 'POST':
         
@@ -136,6 +242,7 @@ def gestion_pacientes():
 
 # GESTIÓN DE PROCEDIMIENTOS
 @app.route('/procedimientos', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico')
 def gestion_procedimientos():
     if request.method == 'POST':
         
@@ -195,6 +302,7 @@ def gestion_procedimientos():
 # GESTIÓN DE ÁREAS (RUTA UNIFICADA)
 
 @app.route('/areas', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico', 'administrativo')
 def gestion_areas():
     """
     Ruta unificada que maneja GET (mostrar lista) y POST (Crear, Actualizar, Eliminar)
@@ -264,6 +372,7 @@ def gestion_areas():
 
 # GESTIÓN DE TRATAMIENTOS
 @app.route('/tratamientos', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico', 'enfermera')
 def gestion_tratamientos():
     if request.method == 'POST':
         # 1. CREATE
@@ -326,6 +435,7 @@ def gestion_tratamientos():
 
 # GESTIÓN DE ESTANCIAS
 @app.route('/estancias', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico', 'enfermera')
 def gestion_estancias():
     if request.method == 'POST':
 
@@ -388,6 +498,7 @@ from gestion_hospitalizaciones_logic import (
 )
 
 @app.route('/hospitalizaciones', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
 def gestion_hospitalizaciones():
     if request.method == 'POST':
 

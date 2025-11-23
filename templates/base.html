@@ -9,6 +9,8 @@
 </head>
 <body>
 
+{% set rol = session.get('rol') %}
+
     <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
@@ -17,67 +19,165 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    
-                    <!-- Enlace para Empleados -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_empleados' %}active{% endif %}" href="{{ url_for('gestion_empleados') }}">Empleados</a>
-                    </li>
-                    
-                    <!-- Enlace para Pacientes -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_pacientes' %}active{% endif %}" href="{{ url_for('gestion_pacientes') }}">Pacientes</a>
-                    </li>
+    
+<!-- Menú principal (lado izquierdo) -->
+<ul class="navbar-nav me-auto">
 
-                    <!-- Enlace para Procedimientos -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_procedimientos' %}active{% endif %}" href="{{ url_for('gestion_procedimientos') }}">Procedimientos</a>
-                    </li>
-                    
-                    <!-- Enlace para Tratamientos -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_tratamientos' %}active{% endif %}" 
-                        href="{{ url_for('gestion_tratamientos') }}">Tratamientos</a>
-                    </li>
+    {# =====================================================
+       ADMIN: ve todos los módulos (incluye Participaciones)
+       ===================================================== #}
+    {% if rol == 'admin' %}
 
-                    <!-- Enlace para Estancias -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_estancias' %}active{% endif %}"
-                        href="{{ url_for('gestion_estancias') }}">Estancias</a>
-                    </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_empleados' %}active{% endif %}"
+               href="{{ url_for('gestion_empleados') }}">Empleados</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_pacientes' %}active{% endif %}"
+               href="{{ url_for('gestion_pacientes') }}">Pacientes</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_procedimientos' %}active{% endif %}"
+               href="{{ url_for('gestion_procedimientos') }}">Procedimientos</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_tratamientos' %}active{% endif %}"
+               href="{{ url_for('gestion_tratamientos') }}">Tratamientos</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_estancias' %}active{% endif %}"
+               href="{{ url_for('gestion_estancias') }}">Estancias</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_areas' %}active{% endif %}"
+               href="{{ url_for('gestion_areas') }}">Áreas</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
+               href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_participaciones' %}active{% endif %}"
+               href="{{ url_for('gestion_participaciones') }}">Participaciones</a>
+        </li>
+
+    {# =====================================================
+       MÉDICO: Pacientes, Procedimientos, Tratamientos, Estancias, Hospitalizaciones
+       ===================================================== #}
+    {% elif rol == 'medico' %}
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_pacientes' %}active{% endif %}"
+               href="{{ url_for('gestion_pacientes') }}">Pacientes</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_procedimientos' %}active{% endif %}"
+               href="{{ url_for('gestion_procedimientos') }}">Procedimientos</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_tratamientos' %}active{% endif %}"
+               href="{{ url_for('gestion_tratamientos') }}">Tratamientos</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_estancias' %}active{% endif %}"
+               href="{{ url_for('gestion_estancias') }}">Estancias</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
+               href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
+        </li>
+
+    {# =====================================================
+       ENFERMERA: Pacientes, Tratamientos, Estancias, Hospitalizaciones
+       ===================================================== #}
+    {% elif rol == 'enfermera' %}
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_pacientes' %}active{% endif %}"
+               href="{{ url_for('gestion_pacientes') }}">Pacientes</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_tratamientos' %}active{% endif %}"
+               href="{{ url_for('gestion_tratamientos') }}">Tratamientos</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_estancias' %}active{% endif %}"
+               href="{{ url_for('gestion_estancias') }}">Estancias</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
+               href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
+        </li>
+
+    {# =====================================================
+       ADMINISTRATIVO: Pacientes, Hospitalizaciones, Áreas
+       ===================================================== #}
+    {% elif rol == 'administrativo' %}
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_pacientes' %}active{% endif %}"
+               href="{{ url_for('gestion_pacientes') }}">Pacientes</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
+               href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_areas' %}active{% endif %}"
+               href="{{ url_for('gestion_areas') }}">Áreas</a>
+        </li>
+
+    {% endif %}
+
+</ul>
 
 
-                    <!-- NUEVO: Enlace para Áreas Específicas -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_areas' %}active{% endif %}" 
-                        href="{{ url_for('gestion_areas') }}">Áreas</a>
-                    </li>
 
-                    <!-- Enlace para Hospitalizaciones -->
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
-                        href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
-                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_participaciones' %}active{% endif %}"
-                        href="{{ url_for('gestion_participaciones') }}">Participaciones</a>
-                    </li>
-                    
-                    </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- Menú del usuario (lado derecho) -->
+    <ul class="navbar-nav ms-auto">
+        {% if session.get('user_id') %}
+            <li class="nav-item">
+                <span class="navbar-text text-white me-3">
+                    {{ session.get('username') }} ({{ session.get('rol') }})
+            </span>
+            </li>
 
-                    
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{{ url_for('logout') }}">
+                    Cerrar sesión
+                </a>
+            </li>
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}"
+                   href="{{ url_for('login') }}">
+                    Iniciar sesión
+                </a>
+            </li>
+        {% endif %}
+    </ul>
 
-                    
-                    <!-- Aquí se añadirán futuras pestañas (Hospitalizaciones, etc.) -->
+</div>
+</div>
+</nav>
 
-                </ul>
-            </div>
-        </div>
-    </nav>
 
     <!-- Contenedor Principal (donde se inyecta el contenido de cada página) -->
     <div class="container mt-4">
