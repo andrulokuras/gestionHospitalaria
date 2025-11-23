@@ -68,6 +68,11 @@
                href="{{ url_for('gestion_participaciones') }}">Participaciones</a>
         </li>
 
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_inventario' %}active{% endif %}"
+            href="{{ url_for('gestion_inventario') }}">Inventario</a>
+        </li>
+
     {# =====================================================
        MÉDICO: Pacientes, Procedimientos, Tratamientos, Estancias, Hospitalizaciones
        ===================================================== #}
@@ -121,6 +126,11 @@
         <li class="nav-item">
             <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
                href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_inventario' %}active{% endif %}"
+                href="{{ url_for('gestion_inventario') }}">Inventario</a>
         </li>
 
     {# =====================================================
@@ -207,3 +217,4 @@
 
 </body>
 </html>
+
