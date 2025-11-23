@@ -13,6 +13,18 @@ from gestion_inventario_logic import create_articulo, read_inventario,update_art
 
 from auth_logic import validar_login
 from functools import wraps
+from gestion_facturas_logic import (
+    create_factura,
+    read_facturas,
+    delete_factura,
+    create_pago,
+    read_pagos_por_factura,
+    delete_pago,
+)
+from gestion_citas_logic import create_cita, read_citas, update_cita, delete_cita
+from gestion_historial_logic import get_historial_completo
+
+
 
 #  CONFIGURACIÓN DE FLASK 
 app = Flask(__name__)
@@ -604,88 +616,193 @@ def gestion_participaciones():
     participaciones = read_participaciones()
     return render_template('gestion_participaciones.html', participaciones=participaciones)
 
-@app.route('/inventario', methods=['GET', 'POST'])
-@requiere_roles('admin', 'enfermera') # Restringido a 'admin' y 'enfermera'
-def gestion_inventario():
-    if request.method == 'POST':
-        
-        # 1. CREAR ARTÍCULO
-        if 'create_articulo' in request.form:
-            try:
-                nombre = request.form['nombre']
-                tipo = request.form['tipo']
-                # Convertir a int y asegurar que no haya error si el campo está vacío (aunque es requerido en HTML)
-                stock_actual = int(request.form['stock_actual']) 
-                stock_minimo = int(request.form['stock_minimo'])
-                
-                ubicacion = request.form['ubicacion']
-                numero_lote_serie = request.form.get('numero_lote_serie')
-                
-                # Campos de fecha opcionales (serán None si están vacíos)
-                fecha_vencimiento = request.form.get('fecha_vencimiento')
-                fecha_mantenimiento = request.form.get('fecha_mantenimiento')
-                
-                descripcion = request.form.get('descripcion')
+# FACTURAS
+@app.route('/facturas', methods=['GET', 'POST'])
+@requiere_roles('admin', 'administrativo')
+def gestion_facturas():
+    if request.method == "POST":
 
-                resultado = create_articulo(
-                    nombre, tipo, stock_actual, stock_minimo, ubicacion, 
-                    numero_lote_serie, fecha_vencimiento, fecha_mantenimiento, descripcion
+        # Crear factura
+        if "create_factura" in request.form:
+            try:
+                id_paciente = int(request.form.get("id_paciente"))
+                fecha_emision = request.form.get("fecha_emision")
+                fecha_vencimiento = request.form.get("fecha_vencimiento") or None
+                estado = request.form.get("estado") or "Pendiente"
+                metodo_pago_preferido = request.form.get("metodo_pago_preferido") or None
+                observaciones = request.form.get("observaciones") or None
+                total_neto = float(request.form.get("total_neto") or 0)
+
+                resultado = create_factura(
+                    id_paciente,
+                    fecha_emision,
+                    fecha_vencimiento,
+                    estado,
+                    metodo_pago_preferido,
+                    observaciones,
+                    total_neto,
                 )
-                
+
                 if resultado is True:
-                    flash(f'Artículo "{nombre}" registrado con éxito.', 'success')
+                    flash("Factura creada correctamente.", "success")
                 else:
-                    flash(f'Error de BD al registrar: {resultado}', 'danger')
+                    flash(f"Error BD al crear factura: {resultado}", "danger")
+
             except Exception as e:
-                 flash(f'Error de datos al crear artículo: {e}', 'danger')
+                flash(f"Error al procesar la factura: {e}", "danger")
 
-        # 2. ACTUALIZAR ARTÍCULO
-        elif 'update_articulo' in request.form:
+            return redirect(url_for("gestion_facturas"))
+
+        # Registrar pago
+        if "create_pago" in request.form:
             try:
-                # El campo oculto id_articulo_actualizar identifica el registro
-                id_articulo = request.form['id_articulo_actualizar']
-                
-                # Los campos de edición tienen el mismo nombre en el modal, se recogen aquí:
-                nombre = request.form['nombre']
-                tipo = request.form['tipo']
-                stock_actual = int(request.form['stock_actual']) 
-                stock_minimo = int(request.form['stock_minimo'])
-                ubicacion = request.form['ubicacion']
-                numero_lote_serie = request.form.get('numero_lote_serie')
-                fecha_vencimiento = request.form.get('fecha_vencimiento')
-                fecha_mantenimiento = request.form.get('fecha_mantenimiento')
-                descripcion = request.form.get('descripcion')
+                id_factura = int(request.form.get("id_factura_pago"))
+                fecha_pago = request.form.get("fecha_pago")
+                monto = float(request.form.get("monto_pago") or 0)
+                metodo_pago = request.form.get("metodo_pago")
+                referencia = request.form.get("referencia_pago") or None
 
-                resultado = update_articulo(
-                    id_articulo, nombre, tipo, stock_actual, stock_minimo, ubicacion, 
-                    numero_lote_serie, fecha_vencimiento, fecha_mantenimiento, descripcion
+                resultado = create_pago(
+                    id_factura,
+                    fecha_pago,
+                    monto,
+                    metodo_pago,
+                    referencia,
+                )
+
+                if resultado is True:
+                    flash("Pago registrado correctamente.", "success")
+                else:
+                    flash(f"Error BD al registrar pago: {resultado}", "danger")
+
+            except Exception as e:
+                flash(f"Error al procesar el pago: {e}", "danger")
+
+            return redirect(url_for("gestion_facturas"))
+
+        # Eliminar pago (botón opcional en la tabla)
+        if "delete_pago" in request.form:
+            id_pago = request.form.get("id_pago_eliminar")
+            resultado = delete_pago(id_pago)
+            if resultado is True:
+                flash("Pago eliminado correctamente.", "success")
+            else:
+                flash(f"Error al eliminar pago: {resultado}", "danger")
+            return redirect(url_for("gestion_facturas"))
+
+        # Eliminar factura (opcional)
+        if "delete_factura" in request.form:
+            id_factura = request.form.get("id_factura_eliminar")
+            resultado = delete_factura(id_factura)
+            if resultado is True:
+                flash("Factura eliminada correctamente.", "success")
+            else:
+                flash(f"Error al eliminar factura: {resultado}", "danger")
+            return redirect(url_for("gestion_facturas"))
+
+    # GET: leer facturas y sus pagos
+    facturas = read_facturas()
+    pagos_por_factura = {
+        f["id_factura"]: read_pagos_por_factura(f["id_factura"]) for f in facturas
+    }
+
+    return render_template(
+        "facturas.html",
+        facturas=facturas,
+        pagos_por_factura=pagos_por_factura,
+    )
+
+
+@app.route('/citas', methods=['GET', 'POST'])
+@requiere_roles('admin', 'medico', 'administrativo')
+def gestion_citas():
+    if request.method == 'POST':
+        # 1. CREAR
+        if 'create_cita' in request.form:
+            try:
+                # Convertir vacíos a None para campos opcionales
+                area = request.form['id_area_especifica']
+                if not area: area = None
+
+                resultado = create_cita(
+                    request.form['id_paciente'],
+                    request.form['id_empleado'], # Médico
+                    area,
+                    request.form['fecha_hora_inicio'],
+                    request.form['duracion_minutos'],
+                    request.form['motivo_consulta'],
+                    request.form['estado']
                 )
                 
                 if resultado is True:
-                    flash(f'Artículo ID {id_articulo} actualizado con éxito!', 'success')
+                    flash('Cita agendada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al agendar: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de datos al agendar: {e}', 'danger')
+
+        # 2. ACTUALIZAR
+        elif 'update_cita' in request.form:
+            try:
+                area = request.form['id_area_especifica_edit']
+                if not area: area = None
+
+                resultado = update_cita(
+                    request.form['id_cita_actualizar'],
+                    request.form['id_paciente_edit'],
+                    request.form['id_empleado_edit'],
+                    area,
+                    request.form['fecha_hora_inicio_edit'],
+                    request.form['duracion_minutos_edit'],
+                    request.form['motivo_consulta_edit'],
+                    request.form['estado_edit']
+                )
+
+                if resultado is True:
+                    flash('Cita actualizada con éxito.', 'success')
                 else:
                     flash(f'Error de BD al actualizar: {resultado}', 'danger')
             except Exception as e:
-                 flash(f'Error de actualización: {e}', 'danger')
+                flash(f'Error de actualización: {e}', 'danger')
 
-        # 3. ELIMINAR ARTÍCULO
-        elif 'delete_articulo' in request.form:
+        # 3. ELIMINAR
+        elif 'delete_cita' in request.form:
             try:
-                id_articulo = request.form['id_articulo_eliminar']
-                resultado = delete_articulo(id_articulo)
+                id_cita = request.form['id_cita_eliminar']
+                resultado = delete_cita(id_cita)
                 
                 if resultado is True:
-                    flash(f'Artículo ID {id_articulo} eliminado.', 'success')
+                    flash(f'Cita ID {id_cita} eliminada.', 'success')
                 else:
                     flash(f'Error de BD al eliminar: {resultado}', 'danger')
             except Exception as e:
                 flash(f'Error de eliminación: {e}', 'danger')
-        
-        return redirect(url_for('gestion_inventario'))
+            
+        return redirect(url_for('gestion_citas'))
 
-    # Lógica GET: Leer el inventario y mostrar la plantilla
-    articulos = read_inventario()
-    return render_template('gestion_inventario.html', articulos=articulos)
+    # GET: Cargar la tabla
+    citas = read_citas()
+    return render_template('gestion_citas.html', citas=citas)
+
+# VISTA MAESTRA: LISTA DE PACIENTES PARA HISTORIAL
+@app.route('/historial')
+@requiere_roles('admin', 'medico', 'enfermera')
+def lista_historial():
+    # Reutilizamos la lógica de leer pacientes
+    pacientes = read_pacientes()
+    return render_template('lista_historial.html', pacientes=pacientes)
+
+# VISTA DETALLE: EL EXPEDIENTE DEL PACIENTE
+@app.route('/historial/<int:id_paciente>')
+@requiere_roles('admin', 'medico', 'enfermera')
+def ver_expediente(id_paciente):
+    datos = get_historial_completo(id_paciente)
+    
+    if not datos or not datos['paciente']:
+        flash("Paciente no encontrado", "danger")
+        return redirect(url_for('lista_historial'))
+        
+    return render_template('detalle_expediente.html', data=datos)
 
 if __name__ == '__main__':
     app.run(debug=True)

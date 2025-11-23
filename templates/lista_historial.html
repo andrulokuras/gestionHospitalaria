@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Selección de Paciente{% endblock %}
+
+{% block content %}
+<h2>Historial Clínico - Selección de Paciente</h2>
+<div class="card mt-3">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Seguro Médico</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pacientes %}
+                <tr>
+                    <td>{{ p.id_paciente }}</td>
+                    <td>{{ p.nombre_completo }}</td>
+                    <td>{{ p.seguro_medico }}</td>
+                    <td>
+                        <a href="{{ url_for('ver_expediente', id_paciente=p.id_paciente) }}" 
+                           class="btn btn-info text-white">
+                           <i class="bi bi-eye-fill"></i> Ver Expediente
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

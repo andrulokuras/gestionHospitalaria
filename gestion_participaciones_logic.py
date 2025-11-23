@@ -1,14 +1,7 @@
 import mysql.connector
 from mysql.connector import errorcode
+from db_connection import DB_CONFIG
 
-# Configuración de la base de datos (REEMPLAZA CON TUS CREDENCIALES REALES)
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'TuContrasenaFinal', # ¡VERIFICAR QUE SEA LA CLAVE CORRECTA!
-    'database': 'GestionHospitalaria',
-    'port': 3306
-}
 
 # ----------------------------------------------------------------------
 # FUNCIONES DE LECTURA (READ)
@@ -34,7 +27,7 @@ def read_participaciones():
             p.id_tratamiento, 
             p.id_empleado,
             e.nombre AS nombre_empleado,         -- Nombre del Empleado (para columna Empleado)
-            t.id_paciente AS id_paciente_tratamiento -- ID del Paciente (para columna Tratamiento)
+            t.id_paciente AS id_paciente -- ID del Paciente (para columna Tratamiento)
         FROM PARTICIPACION p
         JOIN EMPLEADO e ON p.id_empleado = e.id_empleado
         JOIN TRATAMIENTO t ON p.id_tratamiento = t.id_tratamiento
