@@ -10,7 +10,6 @@ from gestion_tratamientos_logic import create_tratamiento, read_tratamientos, up
 from gestion_estancias_logic import create_estancia, read_estancias, update_estancia, delete_estancia
 from gestion_participaciones_logic import create_participacion, read_participaciones, update_participacion, delete_participacion
 from gestion_inventario_logic import create_articulo, read_inventario,update_articulo, delete_articulo
-
 from auth_logic import validar_login
 from functools import wraps
 from gestion_facturas_logic import (
@@ -712,7 +711,7 @@ def gestion_facturas():
         pagos_por_factura=pagos_por_factura,
     )
 
-
+# CITAS
 @app.route('/citas', methods=['GET', 'POST'])
 @requiere_roles('admin', 'medico', 'administrativo')
 def gestion_citas():
@@ -803,6 +802,89 @@ def ver_expediente(id_paciente):
         return redirect(url_for('lista_historial'))
         
     return render_template('detalle_expediente.html', data=datos)
+
+@app.route('/inventario', methods=['GET', 'POST'])
+@requiere_roles('admin', 'enfermera') # Restringido a 'admin' y 'enfermera'
+def gestion_inventario():
+    if request.method == 'POST':
+        
+        # 1. CREAR ARTÍCULO
+        if 'create_articulo' in request.form:
+            try:
+                nombre = request.form['nombre']
+                tipo = request.form['tipo']
+                # Convertir a int y asegurar que no haya error si el campo está vacío (aunque es requerido en HTML)
+                stock_actual = int(request.form['stock_actual']) 
+                stock_minimo = int(request.form['stock_minimo'])
+                
+                ubicacion = request.form['ubicacion']
+                numero_lote_serie = request.form.get('numero_lote_serie')
+                
+                # Campos de fecha opcionales (serán None si están vacíos)
+                fecha_vencimiento = request.form.get('fecha_vencimiento')
+                fecha_mantenimiento = request.form.get('fecha_mantenimiento')
+                
+                descripcion = request.form.get('descripcion')
+
+                resultado = create_articulo(
+                    nombre, tipo, stock_actual, stock_minimo, ubicacion, 
+                    numero_lote_serie, fecha_vencimiento, fecha_mantenimiento, descripcion
+                )
+                
+                if resultado is True:
+                    flash(f'Artículo "{nombre}" registrado con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al registrar: {resultado}', 'danger')
+            except Exception as e:
+                 flash(f'Error de datos al crear artículo: {e}', 'danger')
+
+        # 2. ACTUALIZAR ARTÍCULO
+        elif 'update_articulo' in request.form:
+            try:
+                # El campo oculto id_articulo_actualizar identifica el registro
+                id_articulo = request.form['id_articulo_actualizar']
+                
+                # Los campos de edición tienen el mismo nombre en el modal, se recogen aquí:
+                nombre = request.form['nombre']
+                tipo = request.form['tipo']
+                stock_actual = int(request.form['stock_actual']) 
+                stock_minimo = int(request.form['stock_minimo'])
+                ubicacion = request.form['ubicacion']
+                numero_lote_serie = request.form.get('numero_lote_serie')
+                fecha_vencimiento = request.form.get('fecha_vencimiento')
+                fecha_mantenimiento = request.form.get('fecha_mantenimiento')
+                descripcion = request.form.get('descripcion')
+
+                resultado = update_articulo(
+                    id_articulo, nombre, tipo, stock_actual, stock_minimo, ubicacion, 
+                    numero_lote_serie, fecha_vencimiento, fecha_mantenimiento, descripcion
+                )
+                
+                if resultado is True:
+                    flash(f'Artículo ID {id_articulo} actualizado con éxito!', 'success')
+                else:
+                    flash(f'Error de BD al actualizar: {resultado}', 'danger')
+            except Exception as e:
+                 flash(f'Error de actualización: {e}', 'danger')
+
+        # 3. ELIMINAR ARTÍCULO
+        elif 'delete_articulo' in request.form:
+            try:
+                id_articulo = request.form['id_articulo_eliminar']
+                resultado = delete_articulo(id_articulo)
+                
+                if resultado is True:
+                    flash(f'Artículo ID {id_articulo} eliminado.', 'success')
+                else:
+                    flash(f'Error de BD al eliminar: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de eliminación: {e}', 'danger')
+        
+        return redirect(url_for('gestion_inventario'))
+
+    # Lógica GET: Leer el inventario y mostrar la plantilla
+    articulos = read_inventario()
+    return render_template('gestion_inventario.html', articulos=articulos)
 
 if __name__ == '__main__':
     app.run(debug=True)

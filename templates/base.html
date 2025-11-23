@@ -69,10 +69,6 @@
         </li>
 
         <li class="nav-item">
-<<<<<<< HEAD
-            <a class="nav-link {% if request.endpoint == 'gestion_inventario' %}active{% endif %}"
-            href="{{ url_for('gestion_inventario') }}">Inventario</a>
-=======
             <a class="nav-link {% if request.endpoint == 'gestion_citas' %}active{% endif %}"
                 href="{{ url_for('gestion_citas') }}">Citas</a>
         </li>
@@ -85,7 +81,11 @@
         <li class="nav-item">
             <a class="nav-link {% if request.endpoint in ['lista_historial', 'ver_expediente'] %}active{% endif %}"
                href="{{ url_for('lista_historial') }}">Historial Clínico</a>
->>>>>>> f1fc026 (Corrige cálculo de pagos en facturas)
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_inventario' %}active{% endif %}"
+            href="{{ url_for('gestion_inventario') }}">Inventario</a>
         </li>
 
     {# =====================================================
@@ -154,16 +154,15 @@
                href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
         </li>
 
-<<<<<<< HEAD
-        <li class="nav-item">
-            <a class="nav-link {% if request.endpoint == 'gestion_inventario' %}active{% endif %}"
-                href="{{ url_for('gestion_inventario') }}">Inventario</a>
-=======
 
         <li class="nav-item">
             <a class="nav-link {% if request.endpoint in ['lista_historial', 'ver_expediente'] %}active{% endif %}"
                href="{{ url_for('lista_historial') }}">Historial Clínico</a>
->>>>>>> f1fc026 (Corrige cálculo de pagos en facturas)
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'gestion_inventario' %}active{% endif %}"
+            href="{{ url_for('gestion_inventario') }}">Inventario</a>
         </li>
 
     {# =====================================================
