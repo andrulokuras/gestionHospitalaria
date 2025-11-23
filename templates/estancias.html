@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Estancias{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h1>Registro y Gestión de Estancias Hospitalarias</h1>
+        <p class="lead">Administración de registros de permanencia del paciente en áreas específicas.</p>
+    </div>
+</div>
+
+<!-- ************************************ -->
+<!-- 1. FORMULARIO DE REGISTRO -->
+<!-- ************************************ -->
+<div class="card shadow-sm mb-5">
+    <div class="card-header bg-success text-white">
+        Registrar Nueva Estancia
+    </div>
+    <div class="card-body">
+        <!-- NOTA: Debes configurar la ruta 'gestion_estancias' en tu Flask app -->
+        <form action="{{ url_for('gestion_estancias') }}" method="POST">
+            <input type="hidden" name="create_estancia" value="1">
+            <div class="row g-3">
+                
+                <!-- Médico Responsable (Asumimos ID o Nombre) -->
+                <div class="col-md-4">
+                    <label for="medico_responsable" class="form-label">Médico Responsable (ID/Nombre)</label>
+                    <input type="text" class="form-control" id="medico_responsable" name="medico_responsable" required placeholder="Ej: Dr. Pérez o ID 101">
+                </div>
+                
+                <!-- Hora (Registro) -->
+                <div class="col-md-4">
+                    <label for="hora" class="form-label">Hora de Registro</label>
+                    <!-- Usamos un input tipo time para facilitar la entrada -->
+                    <input type="time" class="form-control" id="hora" name="hora" required>
+                </div>
+                
+                <!-- ID de Procedimiento (Relación con Procedimientos Médicos) -->
+                <div class="col-md-4">
+                    <label for="id_procedimientos" class="form-label">ID de Procedimiento Asociado</label>
+                    <input type="number" class="form-control" id="id_procedimientos" name="id_procedimientos" required placeholder="Ej: 5 (ID del procedimiento)">
+                </div>
+            </div>
+
+            <!-- Botón de Registro -->
+            <div class="mt-4 text-end">
+                <button type="submit" class="btn btn-success">Registrar Estancia</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ************************************ -->
+<!-- 2. LISTADO DE ESTANCIAS (Tabla) -->
+<!-- ************************************ -->
+<div class="row mb-3">
+    <div class="col">
+        <h2>Listado de Estancias Registradas</h2>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID Estancia</th>
+                <th scope="col">Médico Responsable</th>
+                <th scope="col">Hora</th>
+                <th scope="col">ID Procedimiento</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for estancia in estancias %}
+            <tr>
+                <th scope="row">{{ estancia.id_de_estancia }}</th>
+                <td>{{ estancia.medico_responsable }}</td>
+                <td>{{ estancia.hora }}</td>
+                <td>{{ estancia.id_procedimientos }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <!-- Botón Editar -->
+                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditarEstancia{{ estancia.id_de_estancia }}">
+                            Editar
+                        </button>
+                        <!-- Botón Eliminar -->
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarEstancia{{ estancia.id_de_estancia }}">
+                            Eliminar
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Mensaje si no hay estancias -->
+{% if not estancias %}
+<div class="alert alert-info mt-3" role="alert">
+    No hay estancias registradas aún.
+</div>
+{% endif %}
+
+
+<!-- ************************************ -->
+<!-- MODALES DE EDICIÓN Y ELIMINACIÓN -->
+<!-- ************************************ -->
+{% for estancia in estancias %}
+
+<!-- Modal de Edición para Estancia {{ estancia.id_de_estancia }} -->
+<div class="modal fade" id="modalEditarEstancia{{ estancia.id_de_estancia }}" tabindex="-1" aria-labelledby="modalEditarEstanciaLabel{{ estancia.id_de_estancia }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('gestion_estancias') }}" method="POST">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="modalEditarEstanciaLabel{{ estancia.id_de_estancia }}">Editar Estancia ID: {{ estancia.id_de_estancia }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="update_estancia" value="1">
+                    <input type="hidden" name="id_estancia_actualizar" value="{{ estancia.id_de_estancia }}">
+
+                    <div class="mb-3">
+                        <label for="medico_responsable_edit_{{ estancia.id_de_estancia }}" class="form-label">Médico Responsable (ID/Nombre)</label>
+                        <input type="text" class="form-control" id="medico_responsable_edit_{{ estancia.id_de_estancia }}" name="medico_responsable_edit" value="{{ estancia.medico_responsable }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="hora_edit_{{ estancia.id_de_estancia }}" class="form-label">Hora de Registro</label>
+                        <input type="time" class="form-control" id="hora_edit_{{ estancia.id_de_estancia }}" name="hora_edit" value="{{ estancia.hora }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_procedimientos_edit_{{ estancia.id_de_estancia }}" class="form-label">ID de Procedimiento Asociado</label>
+                        <input type="number" class="form-control" id="id_procedimientos_edit_{{ estancia.id_de_estancia }}" name="id_procedimientos_edit" value="{{ estancia.id_procedimientos }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Eliminación para Estancia {{ estancia.id_de_estancia }} -->
+<div class="modal fade" id="modalEliminarEstancia{{ estancia.id_de_estancia }}" tabindex="-1" aria-labelledby="modalEliminarEstanciaLabel{{ estancia.id_de_estancia }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('gestion_estancias') }}" method="POST">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalEliminarEstanciaLabel{{ estancia.id_de_estancia }}">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="delete_estancia" value="1">
+                    <input type="hidden" name="id_estancia_eliminar" value="{{ estancia.id_de_estancia }}">
+                    <p>¿Está seguro de que desea eliminar la estancia con ID: <strong>{{ estancia.id_de_estancia }}</strong> (Responsable: {{ estancia.medico_responsable }})?</p>
+                    <div class="alert alert-warning" role="alert">
+                        Esta acción es irreversible y podría afectar otros registros.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar Estancia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endfor %}

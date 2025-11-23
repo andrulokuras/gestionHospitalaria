@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Pacientes{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Registro y Gestión de Pacientes</h2>
+
+<div class="card mb-4">
+    <div class="card-header">
+        Registrar Nuevo Paciente
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('gestion_pacientes') }}">
+            <input type="hidden" name="create_paciente" value="1">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Nombre Completo</label><input type="text" name="nombre" class="form-control" required></div>
+                <div class="col-md-3"><label class="form-label">F. Nacimiento</label><input type="date" name="fecha_nacimiento" class="form-control" required></div>
+                <div class="col-md-3">
+                    <label class="form-label">Género</label>
+                    <select name="genero" class="form-select">
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                        <option value="O">Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-6"><label class="form-label">Dirección</label><input type="text" name="direccion" class="form-control"></div>
+                <div class="col-md-3"><label class="form-label">Teléfono</label><input type="text" name="telefono" class="form-control"></div>
+                <div class="col-md-3"><label class="form-label">Seguro Médico</label><input type="text" name="seguro_medico" class="form-control" required></div>
+                
+                <div class="col-12 d-grid"><button type="submit" class="btn btn-primary">Registrar Paciente</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<h3 class="mt-5 mb-3">Lista de Pacientes Registrados</h3>
+<div class="table-responsive">
+    <table class="table table-striped table-hover small">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>F. Nacimiento</th>
+                <th>Teléfono</th>
+                <th>Seguro Médico</th>
+                <th>Acciones</th> </tr>
+        </thead>
+        <tbody>
+            {% for pac in pacientes %}
+            <tr>
+                <td>{{ pac.id_paciente }}</td>
+                <td>{{ pac.nombre_completo }}</td>
+                <td>{{ pac.fecha_nacimiento }}</td>
+                <td>{{ pac.telefono }}</td>
+                <td>{{ pac.seguro_medico }}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editPacienteModal"
+                            data-id="{{ pac.id_paciente }}"
+                            data-nombre="{{ pac.nombre_completo }}"
+                            data-fecha="{{ pac.fecha_nacimiento }}"
+                            data-genero="{{ pac.genero }}"
+                            data-direccion="{{ pac.direccion }}"
+                            data-telefono="{{ pac.telefono }}"
+                            data-seguro="{{ pac.seguro_medico }}">
+                            Editar
+                    </button>
+
+                    <form method="POST" style="display:inline;" onsubmit="return confirm('¿Está seguro de eliminar a {{ pac.nombre_completo }}?');">
+                        <input type="hidden" name="delete_paciente" value="1">
+                        <input type="hidden" name="id_paciente_eliminar" value="{{ pac.id_paciente }}">
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">No hay pacientes registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="editPacienteModal" tabindex="-1" aria-labelledby="editPacienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPacienteModalLabel">Editar Paciente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('gestion_pacientes') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="update_paciente" value="1">
+                    <input type="hidden" name="id_paciente_actualizar" id="id_paciente_actualizar">
+
+                    <div class="mb-3">
+                        <label for="nombre_edit" class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" id="nombre_edit" name="nombre_edit" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fecha_nacimiento_edit" class="form-label">F. Nacimiento</label>
+                            <input type="date" class="form-control" id="fecha_nacimiento_edit" name="fecha_nacimiento_edit" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="genero_edit" class="form-label">Género</label>
+                            <select id="genero_edit" name="genero_edit" class="form-select">
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                                <option value="O">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="direccion_edit" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccion_edit" name="direccion_edit">
+                    </div>
+                    <div class="row">
+                         <div class="col-md-6 mb-3">
+                            <label for="telefono_edit" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefono_edit" name="telefono_edit">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="seguro_medico_edit" class="form-label">Seguro Médico</label>
+                            <input type="text" class="form-control" id="seguro_medico_edit" name="seguro_medico_edit" required>
+                        </div>
+                    </div>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var editModal = document.getElementById('editPacienteModal')
+    
+    editModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget
+
+        // Extraer todos los atributos 'data-'
+        var id = button.getAttribute('data-id')
+        var nombre = button.getAttribute('data-nombre')
+        var fecha = button.getAttribute('data-fecha')
+        var genero = button.getAttribute('data-genero')
+        var direccion = button.getAttribute('data-direccion')
+        var telefono = button.getAttribute('data-telefono')
+        var seguro = button.getAttribute('data-seguro')
+
+        // Rellenar los campos del formulario dentro del modal
+        editModal.querySelector('#id_paciente_actualizar').value = id
+        editModal.querySelector('#nombre_edit').value = nombre
+        editModal.querySelector('#fecha_nacimiento_edit').value = fecha
+        editModal.querySelector('#genero_edit').value = genero
+        editModal.querySelector('#direccion_edit').value = direccion
+        editModal.querySelector('#telefono_edit').value = telefono
+        editModal.querySelector('#seguro_medico_edit').value = seguro
+    })
+</script>
+
+{% endblock %}
