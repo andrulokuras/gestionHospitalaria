@@ -59,6 +59,18 @@
                         href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
                     </li>
 
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'gestion_participaciones' %}active{% endif %}"
+                        href="{{ url_for('gestion_participaciones') }}">Participaciones</a>
+                    </li>
+                    
+                    </ul>
+            </div>
+        </div>
+    </nav>
+
+                    
+
                     
                     <!-- Aquí se añadirán futuras pestañas (Hospitalizaciones, etc.) -->
 
