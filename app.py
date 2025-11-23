@@ -8,7 +8,7 @@ from gestion_procedimientos_logic import create_procedimiento, read_procedimient
 from gestion_areas_logic import create_area, read_areas, update_area, delete_area 
 from gestion_tratamientos_logic import create_tratamiento, read_tratamientos, update_tratamiento, delete_tratamiento
 from gestion_estancias_logic import create_estancia, read_estancias, update_estancia, delete_estancia
-
+from gestion_participaciones_logic import create_participacion, read_participaciones, update_participacion, delete_participacion
 
 #  CONFIGURACIÓN DE FLASK 
 app = Flask(__name__)
@@ -430,6 +430,66 @@ def gestion_hospitalizaciones():
 
     hospitalizaciones = read_hospitalizaciones()
     return render_template("hospitalizaciones.html", hospitalizaciones=hospitalizaciones)
+
+@app.route('/participaciones', methods=['GET', 'POST'])
+def gestion_participaciones():
+    if request.method == 'POST':
+        
+        # 1. CREATE
+        if 'create_participacion' in request.form:
+            try:
+                tipo_intervencion = request.form['tipo_intervencion']
+                fecha = request.form['fecha']
+                rol = request.form['rol']
+                id_tratamiento = request.form['id_tratamiento']
+                id_empleado = request.form['id_empleado']
+
+                resultado = create_participacion(tipo_intervencion, fecha, rol, id_tratamiento, id_empleado)
+
+                if resultado is True:
+                    flash('Participación registrada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al crear participación: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de datos al crear participación: {e}', 'danger')
+
+        # 2. DELETE
+        elif 'delete_participacion' in request.form:
+            try:
+                id_participacion = request.form['id_participacion_eliminar']
+                resultado = delete_participacion(id_participacion)
+
+                if resultado is True:
+                    flash(f'Participación ID {id_participacion} eliminada.', 'success')
+                else:
+                    flash(f'Error de BD al eliminar participación: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de eliminación: {e}', 'danger')
+
+        # 3. UPDATE
+        elif 'update_participacion' in request.form:
+            try:
+                id_participacion = request.form['id_participacion_actualizar']
+                tipo_intervencion = request.form['tipo_intervencion_edit']
+                fecha = request.form['fecha_edit']
+                rol = request.form['rol_edit']
+                id_tratamiento = request.form['id_tratamiento_edit']
+                id_empleado = request.form['id_empleado_edit']
+
+                resultado = update_participacion(id_participacion, tipo_intervencion, fecha, rol, id_tratamiento, id_empleado)
+
+                if resultado is True:
+                    flash(f'Participación ID {id_participacion} actualizada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al actualizar participación: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de actualización: {e}', 'danger')
+
+        return redirect(url_for('gestion_participaciones'))
+
+    # GET: mostrar tabla
+    participaciones = read_participaciones()
+    return render_template('gestion_participaciones.html', participaciones=participaciones)
 
 if __name__ == '__main__':
     app.run(debug=True)
