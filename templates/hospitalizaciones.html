@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Hospitalizaciones{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">Gestión de Hospitalizaciones</h1>
+
+<!-- =========================== -->
+<!-- FORMULARIO CREAR           -->
+<!-- =========================== -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        Registrar Nueva Hospitalización
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('gestion_hospitalizaciones') }}" method="POST">
+            <input type="hidden" name="create" value="1">
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Ingreso</label>
+                    <input type="datetime-local" class="form-control" name="fecha_ingreso" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Egreso</label>
+                    <input type="datetime-local" class="form-control" name="fecha_egreso">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Habitación</label>
+                    <input type="text" class="form-control" name="habitacion" placeholder="Ej: 302B">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Paciente (ID)</label>
+                    <input type="number" class="form-control" name="id_paciente" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Estancia (ID)</label>
+                    <input type="number" class="form-control" name="id_estancia">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Área Específica (ID)</label>
+                    <input type="number" class="form-control" name="id_area" required>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Motivo de Ingreso</label>
+                    <textarea name="motivo" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="text-end mt-3">
+                <button class="btn btn-primary">Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =========================== -->
+<!-- TABLA LISTA HOSPITALIZACIONES -->
+<!-- =========================== -->
+<h3 class="mb-3">Historial de Hospitalizaciones</h3>
+
+<div class="table-responsive">
+<table class="table table-hover table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Paciente</th>
+            <th>Área</th>
+            <th>Fecha Ingreso</th>
+            <th>Fecha Egreso</th>
+            <th>Habitación</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in hospitalizaciones %}
+        <tr>
+            <td>{{ h.id_hospitalizaciones }}</td>
+            <td>{{ h.nombre_paciente }}</td>
+            <td>{{ h.nombre_area }}</td>
+            <td>{{ h.fecha_ingreso }}</td>
+            <td>{{ h.fecha_egreso }}</td>
+            <td>{{ h.habitacion }}</td>
+            <td>
+                <div class="btn-group">
+                    <button class="btn btn-warning btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#edit{{ h.id_hospitalizaciones }}"
+                            >
+                        Editar
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#del{{ h.id_hospitalizaciones }}">
+                        Eliminar
+                    </button>
+                </div>
+            </td>
+        </tr>
+
+        <!-- MODAL EDITAR -->
+        <div class="modal fade" id="edit{{ h.id_hospitalizaciones }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form action="{{ url_for('gestion_hospitalizaciones') }}" method="POST">
+                        <input type="hidden" name="update" value="1">
+                        <input type="hidden" name="id_hosp" value="{{ h.id_hospitalizaciones }}">
+
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title">Editar Hospitalización ID {{ h.id_hospitalizaciones }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body row g-3">
+
+                            <div class="col-md-4">
+                                <label>Fecha Ingreso</label>
+                                <input type="datetime-local" class="form-control"
+                                       name="fecha_ingreso"
+                                       value="{{ h.fecha_ingreso|replace(' ', 'T') }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Fecha Egreso</label>
+                                <input type="datetime-local" class="form-control"
+                                       name="fecha_egreso"
+                                       value="{{ h.fecha_egreso|replace(' ', 'T') }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Habitación</label>
+                                <input type="text" class="form-control"
+                                       name="habitacion"
+                                       value="{{ h.habitacion }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>ID Paciente</label>
+                                <input type="number" class="form-control"
+                                       name="id_paciente"
+                                       value="{{ h.id_paciente }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>ID Estancia</label>
+                                <input type="number" class="form-control"
+                                       name="id_estancia"
+                                       value="{{ h.id_de_estancia }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>ID Área</label>
+                                <input type="number" class="form-control"
+                                       name="id_area"
+                                       value="{{ h.id_area_especifica }}">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label>Motivo</label>
+                                <textarea class="form-control" name="motivo">{{ h.motivo_ingreso }}</textarea>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button class="btn btn-warning">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DELETE -->
+        <div class="modal fade" id="del{{ h.id_hospitalizaciones }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ url_for('gestion_hospitalizaciones') }}" method="POST">
+                        <input type="hidden" name="delete" value="1">
+                        <input type="hidden" name="id_hosp" value="{{ h.id_hospitalizaciones }}">
+
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">Eliminar Hospitalización</h5>
+                            <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            ¿Seguro que deseas eliminar la hospitalización
+                            <strong>ID {{ h.id_hospitalizaciones }}</strong>?
+                            <div class="alert alert-warning mt-2">
+                                Esta acción no se puede deshacer.
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button class="btn btn-danger">Eliminar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

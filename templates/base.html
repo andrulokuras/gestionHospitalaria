@@ -34,10 +34,31 @@
                         <a class="nav-link {% if request.endpoint == 'gestion_procedimientos' %}active{% endif %}" href="{{ url_for('gestion_procedimientos') }}">Procedimientos</a>
                     </li>
                     
+                    <!-- Enlace para Tratamientos -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'gestion_tratamientos' %}active{% endif %}" 
+                        href="{{ url_for('gestion_tratamientos') }}">Tratamientos</a>
+                    </li>
+
+                    <!-- Enlace para Estancias -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'gestion_estancias' %}active{% endif %}"
+                        href="{{ url_for('gestion_estancias') }}">Estancias</a>
+                    </li>
+
+
                     <!-- NUEVO: Enlace para Áreas Específicas -->
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'gestion_areas' %}active{% endif %}" href="{{ url_for('gestion_areas') }}">Áreas</a>
+                        <a class="nav-link {% if request.endpoint == 'gestion_areas' %}active{% endif %}" 
+                        href="{{ url_for('gestion_areas') }}">Áreas</a>
                     </li>
+
+                    <!-- Enlace para Hospitalizaciones -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'gestion_hospitalizaciones' %}active{% endif %}"
+                        href="{{ url_for('gestion_hospitalizaciones') }}">Hospitalizaciones</a>
+                    </li>
+
                     
                     <!-- Aquí se añadirán futuras pestañas (Hospitalizaciones, etc.) -->
 

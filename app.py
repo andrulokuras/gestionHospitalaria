@@ -6,6 +6,9 @@ from gestion_empleados_logic import create_empleado, read_empleados, update_empl
 from gestion_pacientes_logic import create_paciente, read_pacientes, update_paciente, delete_paciente 
 from gestion_procedimientos_logic import create_procedimiento, read_procedimientos, update_procedimiento, delete_procedimiento 
 from gestion_areas_logic import create_area, read_areas, update_area, delete_area 
+from gestion_tratamientos_logic import create_tratamiento, read_tratamientos, update_tratamiento, delete_tratamiento
+from gestion_estancias_logic import create_estancia, read_estancias, update_estancia, delete_estancia
+
 
 #  CONFIGURACIÓN DE FLASK 
 app = Flask(__name__)
@@ -26,7 +29,8 @@ def gestion_empleados():
                 nombre = request.form['nombre']
                 puesto = request.form['puesto']
                 fecha = request.form['fecha_contratacion']
-                resultado = create_empleado(nombre, puesto, fecha)
+                tipo = request.form['tipo']
+                resultado = create_empleado(nombre, puesto, fecha, tipo)
                 
                 if resultado is True:
                     flash('Empleado creado con éxito!', 'success')
@@ -53,8 +57,9 @@ def gestion_empleados():
                 nombre = request.form['nombre_edit']
                 puesto = request.form['puesto_edit']
                 fecha = request.form['fecha_contratacion_edit']
+                tipo = request.form['tipo_edit']
 
-                resultado = update_empleado(id_empleado, nombre, puesto, fecha)
+                resultado = update_empleado(id_empleado, nombre, puesto, fecha, tipo)
                 
                 if resultado is True:
                     flash(f'Empleado ID {id_empleado} actualizado con éxito!', 'success')
@@ -257,6 +262,174 @@ def gestion_areas():
         
     return render_template('areas_especificas.html', areas=areas)
 
+# GESTIÓN DE TRATAMIENTOS
+@app.route('/tratamientos', methods=['GET', 'POST'])
+def gestion_tratamientos():
+    if request.method == 'POST':
+        # 1. CREATE
+        if 'create_tratamiento' in request.form:
+            try:
+                id_paciente = request.form['id_paciente']
+                tipo = request.form['tipo']
+                fecha_inicio = request.form['fecha_inicio']
+                estado_actual = request.form['estado_actual']
+                id_area_especifica = request.form['id_area_especifica']
+                id_de_tratamiento = request.form.get('id_de_tratamiento') or None
+
+                resultado = create_tratamiento(id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento)
+
+                if resultado is True:
+                    flash('Tratamiento registrado con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al crear tratamiento: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de datos al crear tratamiento: {e}', 'danger')
+
+        # 2. DELETE
+        elif 'delete_tratamiento' in request.form:
+            try:
+                id_tratamiento = request.form['id_tratamiento_eliminar']
+                resultado = delete_tratamiento(id_tratamiento)
+
+                if resultado is True:
+                    flash(f'Tratamiento ID {id_tratamiento} eliminado.', 'success')
+                else:
+                    flash(f'Error de BD al eliminar tratamiento: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de eliminación: {e}', 'danger')
+
+        # 3. UPDATE
+        elif 'update_tratamiento' in request.form:
+            try:
+                id_tratamiento = request.form['id_tratamiento_actualizar']
+                id_paciente = request.form['id_paciente_edit']
+                tipo = request.form['tipo_edit']
+                fecha_inicio = request.form['fecha_inicio_edit']
+                estado_actual = request.form['estado_actual_edit']
+                id_area_especifica = request.form['id_area_especifica_edit']
+                id_de_tratamiento = request.form.get('id_de_tratamiento_edit') or None
+
+                resultado = update_tratamiento(id_tratamiento, id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento)
+
+                if resultado is True:
+                    flash(f'Tratamiento ID {id_tratamiento} actualizado con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al actualizar tratamiento: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de actualización: {e}', 'danger')
+
+        return redirect(url_for('gestion_tratamientos'))
+
+    # GET: mostrar tabla
+    tratamientos = read_tratamientos()
+    return render_template('gestion_tratamientos.html', tratamientos=tratamientos)
+
+# GESTIÓN DE ESTANCIAS
+@app.route('/estancias', methods=['GET', 'POST'])
+def gestion_estancias():
+    if request.method == 'POST':
+
+        # 1. CREAR
+        if 'create_estancia' in request.form:
+            try:
+                medico_responsable = request.form['medico_responsable']      # name del input en el form
+                hora = request.form['hora']
+                id_procedimientos = request.form['id_procedimientos']
+
+                resultado = create_estancia(medico_responsable, hora, id_procedimientos)
+
+                if resultado is True:
+                    flash('Estancia registrada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al registrar estancia: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de datos al crear estancia: {e}', 'danger')
+
+        # 2. ELIMINAR
+        elif 'delete_estancia' in request.form:
+            try:
+                id_estancia = request.form['id_estancia_eliminar']
+                resultado = delete_estancia(id_estancia)
+
+                if resultado is True:
+                    flash(f'Estancia ID {id_estancia} eliminada.', 'success')
+                else:
+                    flash(f'Error de BD al eliminar estancia: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de eliminación: {e}', 'danger')
+
+        # 3. ACTUALIZAR
+        elif 'update_estancia' in request.form:
+            try:
+                id_estancia = request.form['id_estancia_actualizar']
+                medico_responsable = request.form['medico_responsable_edit']
+                hora = request.form['hora_edit']
+                id_procedimientos = request.form['id_procedimientos_edit']
+
+                resultado = update_estancia(id_estancia, medico_responsable, hora, id_procedimientos)
+
+                if resultado is True:
+                    flash(f'Estancia ID {id_estancia} actualizada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al actualizar estancia: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de actualización: {e}', 'danger')
+
+        return redirect(url_for('gestion_estancias'))
+
+    # GET → mostrar tabla
+    estancias = read_estancias()
+    return render_template('estancias.html', estancias=estancias)
+
+# HOSPITALIZACIONES
+from gestion_hospitalizaciones_logic import (
+    create_hospitalizacion, read_hospitalizaciones,
+    update_hospitalizacion, delete_hospitalizacion
+)
+
+@app.route('/hospitalizaciones', methods=['GET', 'POST'])
+def gestion_hospitalizaciones():
+    if request.method == 'POST':
+
+        # CREAR
+        if 'create' in request.form:
+            result = create_hospitalizacion(
+                request.form['fecha_ingreso'],
+                request.form.get('fecha_egreso'),
+                request.form.get('motivo'),
+                request.form.get('habitacion'),
+                request.form['id_paciente'],
+                request.form.get('id_estancia'),
+                request.form['id_area']
+            )
+            if result is True:
+                flash("Hospitalización registrada correctamente!", "success")
+            else:
+                flash(f"Error: {result}", "danger")
+
+        # ACTUALIZAR
+        if 'update' in request.form:
+            result = update_hospitalizacion(
+                request.form['id_hosp'],
+                request.form['fecha_ingreso'],
+                request.form.get('fecha_egreso'),
+                request.form.get('motivo'),
+                request.form.get('habitacion'),
+                request.form['id_paciente'],
+                request.form.get('id_estancia'),
+                request.form['id_area']
+            )
+            flash("Hospitalización actualizada!", "success")
+
+        # ELIMINAR
+        if 'delete' in request.form:
+            delete_hospitalizacion(request.form['id_hosp'])
+            flash("Hospitalización eliminada!", "warning")
+
+        return redirect(url_for('gestion_hospitalizaciones'))
+
+    hospitalizaciones = read_hospitalizaciones()
+    return render_template("hospitalizaciones.html", hospitalizaciones=hospitalizaciones)
 
 if __name__ == '__main__':
     app.run(debug=True)
