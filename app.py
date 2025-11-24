@@ -22,7 +22,7 @@ from gestion_facturas_logic import (
 )
 from gestion_citas_logic import create_cita, read_citas, update_cita, delete_cita
 from gestion_historial_logic import get_historial_completo
-
+from gestion_asignaciones_logic import create_asignacion, read_asignaciones, update_asignacion, delete_asignacion
 
 
 #  CONFIGURACIÓN DE FLASK 
@@ -312,8 +312,7 @@ def gestion_procedimientos():
     return render_template('gestion_procedimientos.html', procedimientos=procedimientos)
 
 
-# GESTIÓN DE ÁREAS (RUTA UNIFICADA)
-
+# GESTIÓN DE ÁREAS
 @app.route('/areas', methods=['GET', 'POST'])
 @requiere_roles('admin', 'medico', 'administrativo')
 def gestion_areas():
@@ -321,7 +320,7 @@ def gestion_areas():
     Ruta unificada que maneja GET (mostrar lista) y POST (Crear, Actualizar, Eliminar)
     para la Gestión de Áreas.
     """
-    if request.method == 'POST':
+    if request.method == 'POST': 
         
         # 1. CREATE (Registrar Nueva Área)
         if 'create_area' in request.form:
@@ -330,12 +329,17 @@ def gestion_areas():
                 nombre = request.form['nombre'] 
                 ubicacion = request.form['ubicacion']
                 
-                resultado = create_area(tipo, nombre, ubicacion)
+                id_empleado = request.form.get('id_empleado') or None 
+                recursos_clave = request.form.get('recursos_clave') or None
                 
+                resultado = create_area(tipo, nombre, ubicacion, id_empleado, recursos_clave)
+                
+                #  CORRECCIÓN CLAVE AQUÍ: Procesar el resultado de la función de base de datos
                 if resultado is True:
-                    flash(f'Área Específica registrada con éxito: {nombre}', 'success')
+                    flash('Área específica registrada con éxito!', 'success')
                 else:
-                    flash(f'Error de BD al registrar el área: {resultado}', 'danger')
+                    flash(f'Error de BD al crear el área: {resultado}', 'danger')
+                
             except Exception as e:
                  flash(f'Error de datos al crear área: {e}', 'danger')
 
@@ -347,30 +351,38 @@ def gestion_areas():
                 nombre = request.form['nombre_edit'] 
                 ubicacion = request.form['ubicacion_edit']
 
-                resultado = update_area(id_area_especifica, tipo, nombre, ubicacion)
+                # ... (Lógica POST de actualización, sin cambios aquí)
+                id_empleado = request.form.get('id_empleado_edit') or None
+                recursos_clave = request.form.get('recursos_clave_edit') or None
+
+                resultado = update_area(id_area_especifica, tipo, nombre, ubicacion, id_empleado, recursos_clave)
+                # ...
                 
-                if resultado is True:
-                    flash(f'Área ID {id_area_especifica} actualizada con éxito.', 'success')
-                else:
-                    flash(f'Error de BD al actualizar área: {resultado}', 'danger')
             except Exception as e:
                  flash(f'Error de actualización: {e}', 'danger')
 
         # 3. DELETE (Eliminar Área)
         elif 'delete_area' in request.form:
             try:
-                id_area_especifica = request.form['id_area_especifica_eliminar']
-                area_name_to_flash = request.form.get('nombre_area_eliminar', id_area_especifica) 
-                
-                resultado = delete_area(id_area_especifica)
-                
+                #  CAMBIO: Usar .get() para prevenir el 400 Bad Request
+                id_area = request.form.get('id_area_especifica_eliminar')
+            
+                #  Nueva validación para asegurar que el ID existe
+                if not id_area:
+                    raise ValueError("El ID del área a eliminar no fue proporcionado en la solicitud.")
+            
+                # Llama a la función de lógica
+                resultado = delete_area(id_area) 
+
                 if resultado is True:
-                    flash(f'Área {area_name_to_flash} eliminada.', 'success')
+                    flash(f'Área específica ID {id_area} eliminada correctamente.', 'success')
                 else:
                     flash(f'Error de BD al eliminar área: {resultado}', 'danger')
+        
             except Exception as e:
-                flash(f'Error de eliminación: {e}', 'danger')
-
+                # Muestra el error atrapado, que ya no será un 400 genérico si se usa .get()
+                flash(f'Error al procesar la eliminación de área: {e}', 'danger')
+        
         return redirect(url_for('gestion_areas'))
 
 
@@ -379,7 +391,7 @@ def gestion_areas():
     
     if isinstance(areas, str):
         flash(f"Error al cargar las áreas: {areas}", "danger")
-        areas = []
+        areas = [] # Establecer como lista vacía para evitar error al renderizar
         
     return render_template('areas_especificas.html', areas=areas)
 
@@ -803,6 +815,7 @@ def ver_expediente(id_paciente):
         
     return render_template('detalle_expediente.html', data=datos)
 
+# INVENTARIO
 @app.route('/inventario', methods=['GET', 'POST'])
 @requiere_roles('admin', 'enfermera') # Restringido a 'admin' y 'enfermera'
 def gestion_inventario():
@@ -885,6 +898,90 @@ def gestion_inventario():
     # Lógica GET: Leer el inventario y mostrar la plantilla
     articulos = read_inventario()
     return render_template('gestion_inventario.html', articulos=articulos)
+
+# ASIGNACIONES
+@app.route('/asignaciones', methods=['GET', 'POST'])
+@requiere_roles('admin', 'administrativo') # Solo Admin o Administrativo pueden gestionar turnos
+def gestion_asignaciones():
+    asignaciones = []
+    empleados = [] # Variable PLURAL corregida
+    areas = []
+    # ------------------------------------------------------------
+    
+    # ------------------ LÓGICA POST ------------------
+    if request.method == 'POST':
+        # 1. CREATE
+        if 'create_asignacion' in request.form:
+            try:
+                id_empleado = request.form.get('id_empleado_fk')
+                id_area = request.form.get('id_area_fk') # Cambiado de id_area_especifica a id_area
+                
+                # Nuevos campos
+                asignacion = request.form['asignacion'] # Campo de texto (TEXT)
+                turno_datetime = request.form['turno_datetime'] # Campo de Fecha y Hora (DATETIME)
+                resultado = create_asignacion(id_empleado, id_area, asignacion, turno_datetime)
+                
+                if resultado is True:
+                    flash('Asignación de turno registrada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al crear asignación: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de datos al crear asignación: {e}', 'danger')
+
+        # 2. UPDATE
+        elif 'update_asignacion' in request.form:
+            try:
+                id_asignacion = request.form['id_asignacion_actualizar']
+                id_empleado = request.form['id_empleado_edit']
+                id_area_especifica = request.form['id_area_especifica_edit']
+                asignacion = request.form['asignacion_edit']
+                turno_datetime = request.form['turno_datetime_edit']
+                
+                resultado = update_asignacion(id_asignacion, id_empleado, id_area_especifica, asignacion, turno_datetime)
+
+                if resultado is True:
+                    flash(f'Asignación ID {id_asignacion} actualizada con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al actualizar asignación: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de actualización: {e}', 'danger')
+
+        # 3. DELETE
+        elif 'delete_asignacion' in request.form:
+            try:
+                id_asignacion = request.form['id_asignacion_eliminar']
+                resultado = delete_asignacion(id_asignacion)
+
+                if resultado is True:
+                    flash(f'Asignación ID {id_asignacion} eliminada.', 'success')
+                else:
+                    flash(f'Error de BD al eliminar asignación: {resultado}', 'danger')
+            except Exception as e:
+                flash(f'Error de eliminación: {e}', 'danger')
+
+        return redirect(url_for('gestion_asignaciones'))
+
+    # ------------------ LÓGICA GET ------------------
+    try:
+        # 1. Leer todas las asignaciones (para la tabla principal)
+        asignaciones = read_asignaciones()
+        empleados = read_empleados()
+        areas = read_areas()
+        
+    except Exception as e:
+        # Si hay un error de BD en la lectura, mostramos un mensaje
+        flash(f'Error crítico al cargar datos base (Empleados, Áreas o Asignaciones): {e}', 'danger')
+        
+    if isinstance(empleados, str) or isinstance(areas, str):
+         flash("Error al cargar datos base (Empleados/Áreas) - La función de lectura devolvió un error de string.", "danger")
+         empleados = []
+         areas = [] # Esto realmente no es necesario si la lógica try/except es robusta, pero lo dejamos como doble seguridad.
+
+    return render_template('gestion_asignaciones.html', 
+                           asignaciones=asignaciones,
+                           empleados=empleados, # Asegúrate de que tu plantilla use 'empleados' (plural)
+                           areas=areas
+                           )
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -2,7 +2,7 @@ import mysql.connector
 from db_connection import DB_CONFIG 
 
 # --- 1. CREAR (CREATE) ---
-def create_area(tipo, nombre, ubicacion):
+def create_area(tipo, nombre, ubicacion, id_empleado, recursos_clave): # Agrega los nuevos parámetros
     """
     Registra una nueva área específica en la base de datos.
     """
@@ -11,10 +11,10 @@ def create_area(tipo, nombre, ubicacion):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        INSERT INTO AREA_ESPECIFICA (tipo, nombre, ubicacion)
-        VALUES (%s, %s, %s)
-        """
-        valores = (tipo, nombre, ubicacion)
+        INSERT INTO AREA_ESPECIFICA (tipo, nombre, ubicacion, id_empleado, recursos_clave)
+        VALUES (%s, %s, %s, %s, %s)
+        """ # Agrega las nuevas columnas
+        valores = (tipo, nombre, ubicacion, id_empleado, recursos_clave) # Agrega los nuevos valores
         cursor.execute(query, valores)
         conn.commit()
         return True
@@ -29,28 +29,36 @@ def create_area(tipo, nombre, ubicacion):
 # --- 2. LEER (READ) ---
 def read_areas():
     """
-    Lee todos los registros de áreas específicas de la base de datos.
+    Lee todos los registros de áreas, incluyendo la información de la Jefatura (Empleado).
     """
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True) 
         
-        query = "SELECT * FROM AREA_ESPECIFICA ORDER BY id_area_especifica DESC"
+        # 🔑 CORRECCIÓN CLAVE: Se cambió E.puesto por E.tipo
+        query = """
+        SELECT 
+            AE.*,
+            E.nombre AS nombre_jefe,
+            E.tipo AS puesto_jefe 
+        FROM AREA_ESPECIFICA AE
+        LEFT JOIN EMPLEADO E ON AE.id_empleado = E.id_empleado
+        ORDER BY AE.id_area_especifica DESC
+        """
+        
         cursor.execute(query)
-        # Devolvemos la lista de áreas (como diccionarios)
         return cursor.fetchall()
         
     except mysql.connector.Error as err:
-        print(f"Error de lectura de áreas: {err}")
-        return []
+        print(f"Error de lectura de áreas: {err}") 
+        return str(err) 
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
-
 # --- 3. ACTUALIZAR (UPDATE) ---
-def update_area(id_area_especifica, tipo, nombre, ubicacion):
+def update_area(id_area_especifica, tipo, nombre, ubicacion, id_empleado, recursos_clave):
     """
     Actualiza la información de un área específica existente.
     """
@@ -60,10 +68,11 @@ def update_area(id_area_especifica, tipo, nombre, ubicacion):
         cursor = conn.cursor()
         query = """
         UPDATE AREA_ESPECIFICA 
-        SET tipo = %s, nombre = %s, ubicacion = %s
+        SET tipo = %s, nombre = %s, ubicacion = %s, id_empleado = %s, recursos_clave = %s
         WHERE id_area_especifica = %s
         """
-        valores = (tipo, nombre, ubicacion, id_area_especifica)
+        # 🔑 CORRECCIÓN CLAVE AQUÍ: La tupla debe tener 6 valores, incluyendo los nuevos campos y el ID al final.
+        valores = (tipo, nombre, ubicacion, id_empleado, recursos_clave, id_area_especifica) 
         cursor.execute(query, valores)
         conn.commit()
         # Verificar si la actualización afectó alguna fila
