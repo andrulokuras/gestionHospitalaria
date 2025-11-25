@@ -408,9 +408,9 @@ def gestion_tratamientos():
                 fecha_inicio = request.form['fecha_inicio']
                 estado_actual = request.form['estado_actual']
                 id_area_especifica = request.form['id_area_especifica']
-                id_de_tratamiento = request.form.get('id_de_tratamiento') or None
+                id_procedimiento = request.form.get('id_procedimiento') or None
 
-                resultado = create_tratamiento(id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento)
+                resultado = create_tratamiento(id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_procedimiento)
 
                 if resultado is True:
                     flash('Tratamiento registrado con éxito.', 'success')
@@ -441,9 +441,9 @@ def gestion_tratamientos():
                 fecha_inicio = request.form['fecha_inicio_edit']
                 estado_actual = request.form['estado_actual_edit']
                 id_area_especifica = request.form['id_area_especifica_edit']
-                id_de_tratamiento = request.form.get('id_de_tratamiento_edit') or None
+                id_procedimiento = request.form.get('id_procedimient0_edit') or None
 
-                resultado = update_tratamiento(id_tratamiento, id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento)
+                resultado = update_tratamiento(id_tratamiento, id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_procedimiento)
 
                 if resultado is True:
                     flash(f'Tratamiento ID {id_tratamiento} actualizado con éxito.', 'success')
@@ -456,7 +456,8 @@ def gestion_tratamientos():
 
     # GET: mostrar tabla
     tratamientos = read_tratamientos()
-    return render_template('gestion_tratamientos.html', tratamientos=tratamientos)
+    return render_template("gestion_tratamientos.html", tratamientos=tratamientos)
+
 
 # GESTIÓN DE ESTANCIAS
 @app.route('/estancias', methods=['GET', 'POST'])
@@ -529,10 +530,14 @@ def gestion_hospitalizaciones():
 
         # CREAR
         if 'create' in request.form:
+            # hacer opcionales fecha_egreso y motivo
+            fecha_egreso = request.form.get('fecha_egreso') or None
+            motivo = request.form.get('motivo') or None
+
             result = create_hospitalizacion(
                 request.form['fecha_ingreso'],
-                request.form.get('fecha_egreso'),
-                request.form.get('motivo'),
+                fecha_egreso,
+                motivo,
                 request.form.get('habitacion'),
                 request.form['id_paciente'],
                 request.form.get('id_estancia'),
@@ -545,11 +550,15 @@ def gestion_hospitalizaciones():
 
         # ACTUALIZAR
         if 'update' in request.form:
+            # hacer opcionales fecha_egreso y motivo
+            fecha_egreso = request.form.get('fecha_egreso') or None
+            motivo = request.form.get('motivo') or None
+
             result = update_hospitalizacion(
                 request.form['id_hosp'],
                 request.form['fecha_ingreso'],
-                request.form.get('fecha_egreso'),
-                request.form.get('motivo'),
+                fecha_egreso,
+                motivo,
                 request.form.get('habitacion'),
                 request.form['id_paciente'],
                 request.form.get('id_estancia'),

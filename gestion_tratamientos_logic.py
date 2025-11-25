@@ -1,105 +1,131 @@
-# gestion_tratamientos_logic.py
 import mysql.connector
 from db_connection import DB_CONFIG
 
-# 1. CREATE
-def create_tratamiento(id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento=None):
-    conn = None
-    try:
-        conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor()
 
-        query = """
-        INSERT INTO TRATAMIENTO (id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        valores = (id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento)
-        cursor.execute(query, valores)
-        conn.commit()
-        return True
-    except mysql.connector.Error as err:
-        return str(err)
-    finally:
-        if conn and conn.is_connected():
-            cursor.close()
-            conn.close()
-
-# 2. READ
+# -----------------------------------------
+# LEER TRATAMIENTOS
+# -----------------------------------------
 def read_tratamientos():
-    conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
 
-        # Traemos también nombre del paciente y nombre del área
         query = """
-        SELECT 
-            t.id_tratamiento,
-            t.id_paciente,
-            p.nombre_completo AS nombre_paciente,
-            t.tipo,
-            t.fecha_inicio,
-            t.estado_actual,
-            t.id_area_especifica,
-            a.nombre AS nombre_area,
-            t.id_de_tratamiento
-        FROM TRATAMIENTO t
-        LEFT JOIN PACIENTE p ON t.id_paciente = p.id_paciente
-        LEFT JOIN AREA_ESPECIFICA a ON t.id_area_especifica = a.id_area_especifica
-        ORDER BY t.id_tratamiento DESC
+            SELECT t.id_tratamiento,
+                   t.id_paciente,
+                   t.tipo,
+                   t.fecha_inicio,
+                   t.estado_actual,
+                   t.id_area_especifica,
+                   t.id_procedimiento,
+                   p.nombre_completo AS nombre_paciente,
+                   a.nombre AS nombre_area
+            FROM tratamiento t
+            LEFT JOIN paciente p ON p.id_paciente = t.id_paciente
+            LEFT JOIN area_especifica a ON a.id_area_especifica = t.id_area_especifica
+            ORDER BY t.id_tratamiento DESC;
         """
+
         cursor.execute(query)
-        return cursor.fetchall()
-    except mysql.connector.Error as err:
-        print(f"Error al leer tratamientos: {err}")
-        return []
-    finally:
-        if conn and conn.is_connected():
-            cursor.close()
-            conn.close()
+        result = cursor.fetchall()
 
-# 3. UPDATE
-def update_tratamiento(id_tratamiento, id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento=None):
-    conn = None
+        cursor.close()
+        conn.close()
+        return result
+
+    except mysql.connector.Error as err:
+        return str(err)
+
+
+# -----------------------------------------
+# CREAR TRATAMIENTO
+# -----------------------------------------
+def create_tratamiento(id_paciente, tipo, fecha_inicio, estado_actual,
+                       id_area_especifica, id_procedimiento):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
         query = """
-        UPDATE TRATAMIENTO
-        SET id_paciente = %s,
-            tipo = %s,
-            fecha_inicio = %s,
-            estado_actual = %s,
-            id_area_especifica = %s,
-            id_de_tratamiento = %s
-        WHERE id_tratamiento = %s
+            INSERT INTO tratamiento
+            (id_paciente, tipo, fecha_inicio, estado_actual,
+             id_area_especifica, id_procedimiento)
+            VALUES (%s, %s, %s, %s, %s, %s);
         """
-        valores = (id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_de_tratamiento, id_tratamiento)
-        cursor.execute(query, valores)
+
+        cursor.execute(query, (
+            id_paciente,
+            tipo,
+            fecha_inicio,
+            estado_actual,
+            id_area_especifica,
+            id_procedimiento if id_procedimiento else None
+        ))
+
         conn.commit()
-        return cursor.rowcount > 0
+
+        cursor.close()
+        conn.close()
+        return True
+
     except mysql.connector.Error as err:
         return str(err)
-    finally:
-        if conn and conn.is_connected():
-            cursor.close()
-            conn.close()
 
-# 4. DELETE
-def delete_tratamiento(id_tratamiento):
-    conn = None
+
+# -----------------------------------------
+# ACTUALIZAR TRATAMIENTO
+# -----------------------------------------
+def update_tratamiento(id_tratamiento, id_paciente, tipo, fecha_inicio,
+                       estado_actual, id_area_especifica, id_procedimiento):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        query = "DELETE FROM TRATAMIENTO WHERE id_tratamiento = %s"
-        cursor.execute(query, (id_tratamiento,))
+        query = """
+            UPDATE tratamiento
+            SET id_paciente = %s,
+                tipo = %s,
+                fecha_inicio = %s,
+                estado_actual = %s,
+                id_area_especifica = %s,
+                id_procedimiento = %s
+            WHERE id_tratamiento = %s;
+        """
+
+        cursor.execute(query, (
+            id_paciente,
+            tipo,
+            fecha_inicio,
+            estado_actual,
+            id_area_especifica,
+            id_procedimiento if id_procedimiento else None,
+            id_tratamiento
+        ))
+
         conn.commit()
-        return cursor.rowcount > 0
+
+        cursor.close()
+        conn.close()
+        return True
+
     except mysql.connector.Error as err:
         return str(err)
-    finally:
-        if conn and conn.is_connected():
-            cursor.close()
-            conn.close()
+
+
+# -----------------------------------------
+# ELIMINAR TRATAMIENTO
+# -----------------------------------------
+def delete_tratamiento(id_tratamiento):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM tratamiento WHERE id_tratamiento = %s;", (id_tratamiento,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        return True
+
+    except mysql.connector.Error as err:
+        return str(err)

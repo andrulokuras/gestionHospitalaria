@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Citas Médicas{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Programación y Gestión de Citas</h2>
+
+<!-- MENSAJE DE CAMPOS OBLIGATORIOS -->
+<div class="alert alert-info">
+  Por favor llena todos los campos obligatorios marcados con (<span class="text-danger">*</span>).
+</div>
+
+<!-- Error al validar -->
+<div id="errorCamposObligatorios" class="alert alert-danger d-none">
+  Por favor llenar todos los campos obligatorios.
+</div>
+
+<!-- FORMULARIO CREAR CITA -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">
+    Agendar Nueva Cita
+  </div>
+  <div class="card-body">
+
+    <form id="formCrearCita" method="POST" action="{{ url_for('gestion_citas') }}" novalidate>
+      <input type="hidden" name="create_cita" value="1">
+
+      <div class="row g-3">
+
+        <!-- ID Paciente -->
+        <div class="col-md-3">
+          <label class="form-label">ID Paciente <span class="text-danger">*</span></label>
+          <input type="number" name="id_paciente" class="form-control" data-required="true" placeholder="Ej: 2">
+        </div>
+
+        <!-- ID Médico -->
+        <div class="col-md-3">
+          <label class="form-label">ID Médico <span class="text-danger">*</span></label>
+          <input type="number" name="id_empleado" class="form-control" data-required="true" placeholder="Ej: 3">
+        </div>
+
+        <!-- Área específica (opcional) -->
+        <div class="col-md-3">
+          <label class="form-label">ID Área (opcional)</label>
+          <input type="number" name="id_area_especifica" class="form-control">
+        </div>
+
+        <!-- Estado -->
+        <div class="col-md-3">
+          <label class="form-label">Estado <span class="text-danger">*</span></label>
+          <select name="estado" class="form-select" data-required="true">
+            <option value="Solicitada" selected>Solicitada</option>
+            <option value="Confirmada">Confirmada</option>
+            <option value="Cancelada">Cancelada</option>
+            <option value="Completada">Completada</option>
+            <option value="Ausente">Ausente</option>
+          </select>
+        </div>
+
+        <!-- Fecha y hora -->
+        <div class="col-md-4">
+          <label class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+          <input type="datetime-local" name="fecha_hora_inicio" class="form-control" data-required="true">
+        </div>
+
+        <!-- Duración -->
+        <div class="col-md-2">
+          <label class="form-label">Duración (min) <span class="text-danger">*</span></label>
+          <input type="number" name="duracion_minutos" class="form-control" value="30" data-required="true">
+        </div>
+
+        <!-- Motivo consulta opcional -->
+        <div class="col-md-6">
+          <label class="form-label">Motivo de Consulta (opcional)</label>
+          <input type="text" name="motivo_consulta" class="form-control">
+        </div>
+
+        <div class="col-12 d-grid">
+          <button type="submit" class="btn btn-success">Agendar Cita</button>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- TABLA DE CITAS -->
+<div class="card">
+  <div class="card-header">
+    Calendario de Citas
+  </div>
+  <div class="card-body table-responsive">
+    <table class="table table-striped table-hover align-middle">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha/Hora</th>
+          <th>Duración</th>
+          <th>Paciente</th>
+          <th>Médico</th>
+          <th>Área</th>
+          <th>Motivo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for c in citas %}
+        <tr>
+          <td>{{ c.id_cita }}</td>
+          <td>{{ c.fecha_hora_inicio }}</td>
+          <!-- DURACIÓN EN LA 3a COLUMNA -->
+          <td>{{ c.duracion_minutos }} min</td>
+
+          <td>
+            <strong>{{ c.nombre_paciente }}</strong><br>
+            <small class="text-muted">ID: {{ c.id_paciente }}</small>
+          </td>
+
+          <td>
+            {{ c.nombre_medico }}<br>
+            <small class="text-muted">ID: {{ c.id_empleado }}</small>
+          </td>
+
+          <td>{% if c.nombre_area %}{{ c.nombre_area }}{% else %}-{% endif %}</td>
+
+          <!-- Motivo opcional -->
+          <td>{% if c.motivo_consulta %}{{ c.motivo_consulta }}{% else %}-{% endif %}</td>
+
+          <!-- Estado con color -->
+          <td>
+            {% if c.estado == 'Confirmada' %}
+                <span class="badge bg-primary">{{ c.estado }}</span>
+            {% elif c.estado == 'Completada' %}
+                <span class="badge bg-success">{{ c.estado }}</span>
+            {% elif c.estado == 'Cancelada' %}
+                <span class="badge bg-danger">{{ c.estado }}</span>
+            {% else %}
+                <span class="badge bg-secondary">{{ c.estado }}</span>
+            {% endif %}
+          </td>
+
+          <td>
+            <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                    data-bs-target="#modalEditar{{ c.id_cita }}">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+
+            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                    data-bs-target="#modalEliminar{{ c.id_cita }}">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+
+        <!-- MODAL EDITAR -->
+        <div class="modal fade" id="modalEditar{{ c.id_cita }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+              <form id="formEditarCita{{ c.id_cita }}" method="POST" action="{{ url_for('gestion_citas') }}" novalidate>
+                <input type="hidden" name="update_cita" value="1">
+                <input type="hidden" name="id_cita_actualizar" value="{{ c.id_cita }}">
+
+                <div class="modal-header">
+                  <h5 class="modal-title">Editar Cita #{{ c.id_cita }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                  <div class="row g-3">
+
+                    <!-- ID Paciente -->
+                    <div class="col-md-6">
+                      <label class="form-label">ID Paciente <span class="text-danger">*</span></label>
+                      <input type="number" name="id_paciente_edit" class="form-control" data-required="true"
+                             value="{{ c.id_paciente }}">
+                    </div>
+
+                    <!-- ID Médico -->
+                    <div class="col-md-6">
+                      <label class="form-label">ID Médico <span class="text-danger">*</span></label>
+                      <input type="number" name="id_empleado_edit" class="form-control" data-required="true"
+                             value="{{ c.id_empleado }}">
+                    </div>
+
+                    <!-- Fecha y Hora -->
+                    <div class="col-md-6">
+                      <label class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+                      <input type="datetime-local" name="fecha_hora_inicio_edit" class="form-control"
+                             data-required="true" value="{{ c.fecha_hora_inicio }}">
+                    </div>
+
+                    <!-- Duración -->
+                    <div class="col-md-6">
+                      <label class="form-label">Duración (min) <span class="text-danger">*</span></label>
+                      <input type="number" name="duracion_minutos_edit" class="form-control"
+                             data-required="true" value="{{ c.duracion_minutos }}">
+                    </div>
+
+                    <!-- Área OPCIONAL -->
+                    <div class="col-md-6">
+                      <label class="form-label">ID Área (opcional)</label>
+                      <input type="number" name="id_area_especifica_edit" class="form-control"
+                             value="{{ c.id_area_especifica }}">
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="col-md-6">
+                      <label class="form-label">Estado <span class="text-danger">*</span></label>
+                      <select name="estado_edit" class="form-select" data-required="true">
+                        <option value="Solicitada" {% if c.estado=='Solicitada' %}selected{% endif %}>Solicitada</option>
+                        <option value="Confirmada" {% if c.estado=='Confirmada' %}selected{% endif %}>Confirmada</option>
+                        <option value="Cancelada" {% if c.estado=='Cancelada' %}selected{% endif %}>Cancelada</option>
+                        <option value="Completada" {% if c.estado=='Completada' %}selected{% endif %}>Completada</option>
+                        <option value="Ausente" {% if c.estado=='Ausente' %}selected{% endif %}>Ausente</option>
+                      </select>
+                    </div>
+
+                    <!-- Motivo OPCIONAL -->
+                    <div class="col-12">
+                      <label class="form-label">Motivo (opcional)</label>
+                      <input type="text" name="motivo_consulta_edit" class="form-control"
+                             value="{{ c.motivo_consulta }}">
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL ELIMINAR -->
+        <div class="modal fade" id="modalEliminar{{ c.id_cita }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST" action="{{ url_for('gestion_citas') }}">
+                <input type="hidden" name="delete_cita" value="1">
+                <input type="hidden" name="id_cita_eliminar" value="{{ c.id_cita }}">
+
+                <div class="modal-header">
+                  <h5 class="modal-title">Confirmar cancelación</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                  ¿Seguro que deseas eliminar la cita de <strong>{{ c.nombre_paciente }}</strong> 
+                  programada para el {{ c.fecha_hora_inicio }}?
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, regresar</button>
+                  <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+
+<!-- VALIDACIÓN JS -->
+<script>
+const forms = document.querySelectorAll("form[id^='formCrearCita'], form[id^='formEditarCita']");
+
+forms.forEach(form => {
+  form.addEventListener("submit", function (e) {
+    let valido = true;
+    const obligatorios = form.querySelectorAll("[data-required='true']");
+    const errorMsg = document.getElementById("errorCamposObligatorios");
+
+    if (errorMsg) errorMsg.classList.add("d-none");
+
+    obligatorios.forEach(campo => {
+      campo.classList.remove("is-invalid");
+      if (!campo.value.trim()) {
+        valido = false;
+        campo.classList.add("is-invalid");
+      }
+    });
+
+    if (!valido) {
+      e.preventDefault();
+      if (errorMsg) errorMsg.classList.remove("d-none");
+    }
+  });
+});
+</script>
+
+{% endblock %}

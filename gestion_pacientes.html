@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Pacientes{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Registro y Gestión de Pacientes</h2>
+
+<!-- Mensaje de advertencia -->
+<div class="alert alert-info">
+    Por favor llena todos los campos obligatorios marcados con (<span class="text-danger">*</span>).
+</div>
+
+<!-- Mensaje de error al validar -->
+<div id="errorCamposObligatorios" class="alert alert-danger d-none">
+    Por favor llenar campos obligatorios.
+</div>
+
+<!-- FORMULARIO CREAR PACIENTE -->
+<div class="card mb-4">
+    <div class="card-header">
+        Registrar Nuevo Paciente
+    </div>
+    <div class="card-body">
+        <form id="formCrearPaciente" method="POST" action="{{ url_for('gestion_pacientes') }}" novalidate>
+            <input type="hidden" name="create_paciente" value="1">
+
+            <div class="row g-3">
+
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                    <input type="text" name="nombre" class="form-control" data-required="true">
+                </div>
+
+                <!-- Fecha nacimiento -->
+                <div class="col-md-3">
+                    <label class="form-label">F. Nacimiento <span class="text-danger">*</span></label>
+                    <input type="date" name="fecha_nacimiento" class="form-control" data-required="true">
+                </div>
+
+                <!-- Género -->
+                <div class="col-md-3">
+                    <label class="form-label">Género <span class="text-danger">*</span></label>
+                    <select name="genero" class="form-select" data-required="true">
+                        <option value="">Selecciona una opción</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                        <option value="O">Otro</option>
+                    </select>
+                </div>
+
+                <!-- Dirección -->
+                <div class="col-md-6">
+                    <label class="form-label">Dirección <span class="text-danger">*</span></label>
+                    <input type="text" name="direccion" class="form-control" data-required="true">
+                </div>
+
+                <!-- Teléfono (solo números) -->
+                <div class="col-md-3">
+                    <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+                    <input type="number"
+                           name="telefono"
+                           class="form-control"
+                           data-required="true"
+                           min="0"
+                           step="1"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+
+                <!-- Seguro médico -->
+                <div class="col-md-3">
+                    <label class="form-label">Seguro Médico <span class="text-danger">*</span></label>
+                    <input type="text" name="seguro_medico" class="form-control" data-required="true">
+                </div>
+
+                <div class="col-12 d-grid">
+                    <button type="submit" class="btn btn-primary">Registrar Paciente</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- TABLA DE PACIENTES -->
+<h3 class="mt-5 mb-3">Lista de Pacientes Registrados</h3>
+<div class="table-responsive">
+    <table class="table table-striped table-hover small">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>F. Nacimiento</th>
+                <th>Género</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>Seguro Médico</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pac in pacientes %}
+            <tr>
+                <td>{{ pac.id_paciente }}</td>
+                <td>{{ pac.nombre_completo }}</td>
+                <td>{{ pac.fecha_nacimiento }}</td>
+                <td>{{ pac.genero }}</td>
+                <td>{{ pac.domicilio }}</td>
+                <td>{{ pac.telefono }}</td>
+                <td>{{ pac.seguro_medico }}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editPacienteModal"
+                            data-id="{{ pac.id_paciente }}"
+                            data-nombre="{{ pac.nombre_completo }}"
+                            data-fecha="{{ pac.fecha_nacimiento }}"
+                            data-genero="{{ pac.genero }}"
+                            data-direccion="{{ pac.domicilio }}"
+                            data-telefono="{{ pac.telefono }}"
+                            data-seguro="{{ pac.seguro_medico }}">
+                        Editar
+                    </button>
+
+                    <form method="POST" style="display:inline;"
+                          onsubmit="return confirm('¿Está seguro de eliminar a {{ pac.nombre_completo }}?');">
+                        <input type="hidden" name="delete_paciente" value="1">
+                        <input type="hidden" name="id_paciente_eliminar" value="{{ pac.id_paciente }}">
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center">No hay pacientes registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL EDITAR PACIENTE -->
+<div class="modal fade" id="editPacienteModal" tabindex="-1" aria-labelledby="editPacienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPacienteModalLabel">Editar Paciente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="formEditarPaciente" method="POST" action="{{ url_for('gestion_pacientes') }}" novalidate>
+                <div class="modal-body">
+
+                    <input type="hidden" name="update_paciente" value="1">
+                    <input type="hidden" name="id_paciente_actualizar" id="id_paciente_actualizar">
+
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" id="nombre_edit" name="nombre_edit" class="form-control" data-required="true">
+                    </div>
+
+                    <div class="row">
+                        <!-- Fecha nacimiento -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">F. Nacimiento <span class="text-danger">*</span></label>
+                            <input type="date" id="fecha_nacimiento_edit" name="fecha_nacimiento_edit" class="form-control" data-required="true">
+                        </div>
+
+                        <!-- Género -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Género <span class="text-danger">*</span></label>
+                            <select id="genero_edit" name="genero_edit" class="form-select" data-required="true">
+                                <option value="">Selecciona una opción</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                                <option value="O">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="mb-3">
+                        <label class="form-label">Dirección <span class="text-danger">*</span></label>
+                        <input type="text" id="direccion_edit" name="direccion_edit" class="form-control" data-required="true">
+                    </div>
+
+                    <div class="row">
+                        <!-- Teléfono (solo números) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+                            <input type="number"
+                                   id="telefono_edit"
+                                   name="telefono_edit"
+                                   class="form-control"
+                                   data-required="true"
+                                   min="0"
+                                   step="1"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+
+                        <!-- Seguro médico -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Seguro Médico <span class="text-danger">*</span></label>
+                            <input type="text" id="seguro_medico_edit" name="seguro_medico_edit" class="form-control" data-required="true">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT VALIDACIÓN -->
+<script>
+// Rellenar modal al abrir
+var editModal = document.getElementById('editPacienteModal');
+if (editModal) {
+    editModal.addEventListener('show.bs.modal', function(event) {
+        var button = event.relatedTarget;
+
+        document.getElementById('id_paciente_actualizar').value = button.getAttribute('data-id');
+        document.getElementById('nombre_edit').value = button.getAttribute('data-nombre');
+        document.getElementById('fecha_nacimiento_edit').value = button.getAttribute('data-fecha');
+        document.getElementById('genero_edit').value = button.getAttribute('data-genero');
+        document.getElementById('direccion_edit').value = button.getAttribute('data-direccion');
+        document.getElementById('telefono_edit').value = button.getAttribute('data-telefono');
+        document.getElementById('seguro_medico_edit').value = button.getAttribute('data-seguro');
+    });
+}
+
+// Validación de campos obligatorios
+const forms = ["formCrearPaciente", "formEditarPaciente"];
+
+forms.forEach(id => {
+    const form = document.getElementById(id);
+    if (!form) return;
+
+    form.addEventListener("submit", function(e) {
+        let valido = true;
+        const obligatorios = form.querySelectorAll("[data-required='true']");
+        const errorMsg = document.getElementById("errorCamposObligatorios");
+
+        if (errorMsg) {
+            errorMsg.classList.add("d-none");
+        }
+
+        obligatorios.forEach(campo => {
+            campo.classList.remove("is-invalid");
+            if (!campo.value.trim()) {
+                campo.classList.add("is-invalid");
+                valido = false;
+            }
+        });
+
+        if (!valido) {
+            e.preventDefault();
+            if (errorMsg) {
+                errorMsg.classList.remove("d-none");
+            }
+        }
+    });
+});
+
+// Refuerzo: forzar solo números en teléfono desde JS
+document.querySelectorAll('input[name="telefono"], input[name="telefono_edit"]').forEach(input => {
+    input.addEventListener("input", function () {
+        this.value = this.value.replace(/[^0-9]/g, "");
+    });
+});
+</script>
+
+{% endblock %}
