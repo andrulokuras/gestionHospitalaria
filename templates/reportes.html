@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes y Analítica{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Reportes y analítica</h1>
+    <span class="badge bg-secondary">Panel resumen</span>
+</div>
+
+<div class="accordion mb-4" id="accordionReportes">
+
+  <!-- Panel: Resumen clínico -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingClinico">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseClinico" aria-expanded="true"
+              aria-controls="collapseClinico">
+        Informes clínicos generales
+      </button>
+    </h2>
+    <div id="collapseClinico" class="accordion-collapse collapse show"
+         aria-labelledby="headingClinico" data-bs-parent="#accordionReportes">
+      <div class="accordion-body">
+
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">Pacientes registrados</h6>
+                        <p class="display-6 mb-0">
+                            {{ resumen_clinico.total_pacientes or 0 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">Pacientes hospitalizados</h6>
+                        <p class="display-6 mb-0">
+                            {{ resumen_clinico.pacientes_hospitalizados or 0 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">Tratamientos registrados</h6>
+                        <p class="display-6 mb-0">
+                            {{ resumen_clinico.total_tratamientos or 0 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">Procedimientos registrados</h6>
+                        <p class="display-6 mb-0">
+                            {{ resumen_clinico.total_procedimientos or 0 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Ocupación hospitalaria -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingOcupacion">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseOcupacion" aria-expanded="false"
+              aria-controls="collapseOcupacion">
+        Ocupación hospitalaria por área (Top 10)
+      </button>
+    </h2>
+    <div id="collapseOcupacion" class="accordion-collapse collapse"
+         aria-labelledby="headingOcupacion" data-bs-parent="#accordionReportes">
+      <div class="accordion-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-primary">
+                Hospitalizados actuales: {{ total_hospitalizados }}
+            </span>
+            <a href="{{ url_for('gestion_areas') }}" class="btn btn-sm btn-outline-primary">
+                Ver todas las áreas
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Área</th>
+                        <th>Tipo</th>
+                        <th class="text-center">Pacientes hospitalizados</th>
+                        <th>Ingreso más antiguo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if resumen_ocupacion %}
+                    {% for area in resumen_ocupacion %}
+                    <tr>
+                        <td>{{ area.nombre_area }}</td>
+                        <td>{{ area.tipo_area }}</td>
+                        <td class="text-center">
+                            {{ area.pacientes_hospitalizados }}
+                        </td>
+                        <td>
+                            {% if area.ingreso_mas_antiguo %}
+                                {{ area.ingreso_mas_antiguo }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">
+                            No hay datos de ocupación registrados.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Productividad médica -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingProductividad">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseProductividad" aria-expanded="false"
+              aria-controls="collapseProductividad">
+        Productividad médica (Top 10)
+      </button>
+    </h2>
+    <div id="collapseProductividad" class="accordion-collapse collapse"
+         aria-labelledby="headingProductividad" data-bs-parent="#accordionReportes">
+      <div class="accordion-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <form class="row g-2 align-items-center" method="get" action="{{ url_for('reportes') }}">
+                <div class="col-auto">
+                    <input type="text" name="medico" class="form-control form-control-sm"
+                           placeholder="Filtrar por nombre de médico"
+                           value="{{ request.args.get('medico', '') }}">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">
+                        Buscar
+                    </button>
+                </div>
+            </form>
+            <a href="{{ url_for('gestion_empleados') }}" class="btn btn-sm btn-outline-primary">
+                Ver detalle de médicos
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Médico</th>
+                        <th class="text-center">Citas totales</th>
+                        <th class="text-center">Citas completadas</th>
+                        <th class="text-center">Participaciones en tratamientos / procedimientos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if productividad %}
+                    {% for med in productividad %}
+                    <tr>
+                        <td>{{ med.nombre_medico }}</td>
+                        <td class="text-center">{{ med.total_citas }}</td>
+                        <td class="text-center">{{ med.citas_completadas }}</td>
+                        <td class="text-center">{{ med.total_participaciones }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">
+                            No hay datos de productividad registrados.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Estadísticas de servicios -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingServicios">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseServicios" aria-expanded="false"
+              aria-controls="collapseServicios">
+        Estadísticas de servicios
+      </button>
+    </h2>
+    <div id="collapseServicios" class="accordion-collapse collapse"
+         aria-labelledby="headingServicios" data-bs-parent="#accordionReportes">
+      <div class="accordion-body">
+
+        <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="bi bi-clipboard2-pulse me-1"></i> Tratamientos por tipo
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tipo de tratamiento</th>
+                                    <th class="text-center">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% if estadisticas_servicios.tratamientos_por_tipo %}
+                                {% for t in estadisticas_servicios.tratamientos_por_tipo %}
+                                <tr>
+                                    <td>{{ t.tipo }}</td>
+                                    <td class="text-center">{{ t.total }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted py-3">
+                                        No hay tratamientos registrados.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="bi bi-activity me-1"></i> Procedimientos por tipo
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tipo de procedimiento</th>
+                                    <th class="text-center">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% if estadisticas_servicios.procedimientos_por_tipo %}
+                                {% for p in estadisticas_servicios.procedimientos_por_tipo %}
+                                <tr>
+                                    <td>{{ p.tipo }}</td>
+                                    <td class="text-center">{{ p.total }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted py-3">
+                                        No hay procedimientos registrados.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hospitalizaciones por mes -->
+        <div class="card mb-0">
+            <div class="card-header">
+                <i class="bi bi-calendar-week me-1"></i> Hospitalizaciones por mes (últimos registros)
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mes</th>
+                            <th class="text-center">Total hospitalizaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if estadisticas_servicios.hospitalizaciones_por_mes %}
+                        {% for h in estadisticas_servicios.hospitalizaciones_por_mes %}
+                        <tr>
+                            <td>{{ h.mes }}</td>
+                            <td class="text-center">{{ h.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-3">
+                                No hay datos de hospitalizaciones por mes.
+                            </td>
+                        </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Gestión administrativa -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingAdministrativo">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseAdministrativo" aria-expanded="false"
+              aria-controls="collapseAdministrativo">
+        Gestión administrativa y financiera
+      </button>
+    </h2>
+    <div id="collapseAdministrativo" class="accordion-collapse collapse"
+         aria-labelledby="headingAdministrativo" data-bs-parent="#accordionReportes">
+      <div class="accordion-body">
+
+        <div class="row mb-3">
+            <div class="col-md-4 mb-2">
+                <div class="border-start border-4 border-primary ps-3">
+                    <div class="text-muted small">Total facturado</div>
+                    <div class="fw-bold">
+                        $ {{ resumen_admin.resumen_montos.total_facturado or 0 }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="border-start border-4 border-success ps-3">
+                    <div class="text-muted small">Total pagado</div>
+                    <div class="fw-bold">
+                        $ {{ resumen_admin.resumen_montos.total_pagado or 0 }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="border-start border-4 border-warning ps-3">
+                    <div class="text-muted small">Total pendiente</div>
+                    <div class="fw-bold">
+                        $ {{ resumen_admin.resumen_montos.total_pendiente or 0 }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h6>Facturas por estado</h6>
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Estado</th>
+                        <th class="text-center">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if resumen_admin.facturas_por_estado %}
+                    {% for fe in resumen_admin.facturas_por_estado %}
+                    <tr>
+                        <td>{{ fe.estado }}</td>
+                        <td class="text-center">{{ fe.total }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted py-3">
+                            No hay facturas registradas.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3">
+            <a href="{{ url_for('gestion_facturas') }}" class="btn btn-sm btn-outline-primary">
+                Ir a gestión de facturas
+            </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

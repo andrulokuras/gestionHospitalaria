@@ -48,15 +48,25 @@
                  data-required="true">
         </div>
 
-        <div class="col-md-2">
-          <label class="form-label">ID Tratamiento <span class="text-danger">*</span></label>
-          <input type="number" name="id_tratamiento" class="form-control" data-required="true">
+        <div class="col-md-3">
+          <label class="form-label">Tratamiento (ID / Paciente) <span class="text-danger">*</span></label>
+          <input
+            list="listaTratParticip"
+            name="id_tratamiento"
+            class="form-control"
+            data-required="true"
+            placeholder="Ej: 5 - Farmacológico - Juan Pérez">
         </div>
 
-        <div class="col-md-1">
-          <label class="form-label">ID Empleado <span class="text-danger">*</span></label>
-          <input type="number" name="id_empleado" class="form-control" data-required="true">
-        </div>
+<div class="col-md-3">
+  <label class="form-label">Empleado (ID / Nombre) <span class="text-danger">*</span></label>
+  <input
+    list="listaEmpleadosParticip"
+    name="id_empleado"
+    class="form-control"
+    data-required="true"
+    placeholder="Ej: 3 - Dra. Sánchez">
+</div>
 
         <div class="col-12 d-grid">
           <button type="submit" class="btn btn-primary">Registrar Participación</button>
@@ -191,15 +201,23 @@
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">ID Tratamiento <span class="text-danger">*</span></label>
-                    <input type="number" name="id_tratamiento_edit" class="form-control"
-                           value="{{ p.id_tratamiento }}" data-required="true">
+                    <label class="form-label">Tratamiento (ID / Paciente) <span class="text-danger">*</span></label>
+                    <input
+                      list="listaTratParticip"
+                      name="id_tratamiento_edit"
+                      class="form-control"
+                      value="{% if p.id_tratamiento %}{{ p.id_tratamiento }}{% if p.tipo_tratamiento or p.nombre_paciente %} - {{ p.tipo_tratamiento or '' }}{% if p.nombre_paciente %} - {{ p.nombre_paciente }}{% endif %}{% endif %}{% endif %}"
+                      data-required="true">
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">ID Empleado <span class="text-danger">*</span></label>
-                    <input type="number" name="id_empleado_edit" class="form-control"
-                           value="{{ p.id_empleado }}" data-required="true">
+                    <label class="form-label">Empleado (ID / Nombre) <span class="text-danger">*</span></label>
+                    <input
+                      list="listaEmpleadosParticip"
+                      name="id_empleado_edit"
+                      class="form-control"
+                      value="{% if p.id_empleado %}{{ p.id_empleado }}{% if p.nombre_empleado %} - {{ p.nombre_empleado }}{% endif %}{% endif %}"
+                      data-required="true">
                   </div>
 
                 </div>
@@ -252,6 +270,22 @@
   </div>
 </div>
 
+<datalist id="listaTratParticip">
+  {% for t in tratamientos_select %}
+    <option value="{{ t.id_tratamiento }} - {{ t.nombre_paciente }} - {{ t.tipo }}">
+    </option>
+  {% endfor %}
+</datalist>
+
+
+
+
+<datalist id="listaEmpleadosParticip">
+  {% for e in empleados_select %}
+    {# Cambia nombre_empleado si tu modelo se llama distinto (nombre, nombre_completo, etc.) #}
+    <option value="{{ e.id_empleado }} - {{ e.nombre }}"></option>
+  {% endfor %}
+</datalist>
 <!-- VALIDACIÓN JS -->
 <script>
 const formsParticipaciones = document.querySelectorAll("#formCrearParticipacion, form.formEditarParticipacion");

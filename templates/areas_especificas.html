@@ -59,8 +59,13 @@
 
             <div class="col-md-3">
                 <label for="id_empleado" class="form-label">ID Empleado (Jefatura) <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="id_empleado" name="id_empleado"
-                       placeholder="Ej: 3" data-required="true">
+                <input
+                    list="listaEmpleadosAreas"
+                    class="form-control"
+                    id="id_empleado"
+                    name="id_empleado"
+                    placeholder="Ej: 3 - Dra. Pérez"
+                    data-required="true">
             </div>
         </div>
 
@@ -214,10 +219,13 @@
                                     <label for="id_empleado_edit_{{ area.id_area_especifica }}" class="form-label">
                                         ID Empleado (Jefatura) <span class="text-danger">*</span>
                                     </label>
-                                    <input type="number" class="form-control" id="id_empleado_edit_{{ area.id_area_especifica }}"
-                                           name="id_empleado_edit"
-                                           value="{{ area.id_empleado if area.id_empleado is not none else '' }}"
-                                           data-required="true">
+                                    <input
+                                        list="listaEmpleadosAreas"
+                                        class="form-control"
+                                        id="id_empleado_edit_{{ area.id_area_especifica }}"
+                                        name="id_empleado_edit"
+                                        value="{% if area.id_empleado %}{{ area.id_empleado }}{% if area.nombre_jefe %} - {{ area.nombre_jefe }}{% endif %}{% endif %}"
+                                        data-required="true">
                                 </div>
                                 
                                 <div class="mb-3">
@@ -279,6 +287,12 @@
 </div>
 {% endif %}
 
+<datalist id="listaEmpleadosAreas">
+  {% for e in empleados_select %}
+    <!-- Ajusta nombre_empleado según tu modelo (puede ser e.nombre, e.nombre_empleado, e.nombre_completo...) -->
+    <option value="{{ e.id_empleado }} - {{ e.nombre }}"></option>
+  {% endfor %}
+</datalist>
 <!-- VALIDACIÓN JS -->
 <script>
 const formsAreas = document.querySelectorAll("#formCrearArea, form.formEditArea");
