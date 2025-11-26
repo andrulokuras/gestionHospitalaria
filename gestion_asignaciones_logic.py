@@ -26,16 +26,16 @@ def create_asignacion(id_empleado, id_area_especifica, asignacion, turno_datetim
             conn.close()
 
 # --- 2. LEER ASIGNACIONES (Con JOINS) ---
-def read_asignaciones():
+def read_asignaciones(filtro_nombre_medico=None):
     """
-    Lee todas las asignaciones con los nombres del empleado y el área de la tabla ASIGNACION_TURNO.
+    Lee todas las asignaciones con los nombres del empleado y el área.
+    Permite filtrar por nombre de empleado (médico/enfermera/etc.).
     """
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor(dictionary=True) # Siempre usar dictionary=True
+        cursor = conn.cursor(dictionary=True)
         
-        # 🔑 CONSULTA CORREGIDA: Hacemos JOINs a las tablas EMPLEADO y AREA_ESPECIFICA
         query = """
         SELECT 
             AT.id_asignacion, 
@@ -44,26 +44,33 @@ def read_asignaciones():
             AT.turno_datetime, 
             AT.asignacion,
             
-            E.nombre AS nombre_empleado,         -- Alias para el nombre del empleado
-            AE.nombre AS nombre_area             -- Alias para el nombre del área
-            
+            E.nombre AS nombre_empleado,
+            AE.nombre AS nombre_area
         FROM ASIGNACION_TURNO AT
         LEFT JOIN EMPLEADO E ON AT.id_empleado = E.id_empleado
         LEFT JOIN AREA_ESPECIFICA AE ON AT.id_area_especifica = AE.id_area_especifica
-        ORDER BY AT.id_asignacion DESC
+        WHERE 1=1
         """
-        
-        cursor.execute(query)
+        valores = []
+
+        if filtro_nombre_medico:
+            query += " AND E.nombre LIKE %s"
+            valores.append(f"%{filtro_nombre_medico}%")
+
+        query += " ORDER BY AT.id_asignacion DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
         
     except mysql.connector.Error as err:
         print(f"Error de lectura de asignaciones: {err}") 
-        # Crucial: Devolver una lista vacía en caso de error para evitar fallos de Jinja2
-        return [] 
+        return []
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+
             
 # --- 3. ACTUALIZAR ASIGNACIÓN ---
 def update_asignacion(id_asignacion, id_empleado, id_area_especifica, asignacion, turno_datetime):

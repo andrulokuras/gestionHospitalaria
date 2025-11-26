@@ -24,7 +24,7 @@ def create_procedimiento(fecha, tipo, resultados):
             conn.close()
 
 # --- 2. LEER (READ) ---
-def read_procedimientos():
+def read_procedimientos(filtro_tipo=None):
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -33,14 +33,21 @@ def read_procedimientos():
         query = """
         SELECT 
             id_procedimiento, 
-            DATE_FORMAT(fecha, '%Y-%m-%d') AS fecha,  -- CORREGIDO: Uso de porcentaje simple
+            DATE_FORMAT(fecha, '%Y-%m-%d') AS fecha,
             tipo, 
             resultados 
         FROM PROCEDIMIENTOS
-        ORDER BY fecha DESC
+        WHERE 1=1
         """
-        cursor.execute(query)
-        # Devolvemos la lista de procedimientos (como diccionarios)
+        valores = []
+
+        if filtro_tipo:
+            query += " AND tipo LIKE %s"
+            valores.append(f"%{filtro_tipo}%")
+
+        query += " ORDER BY fecha DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
         
     except mysql.connector.Error as err:
@@ -50,6 +57,7 @@ def read_procedimientos():
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 # --- 3. ACTUALIZAR (UPDATE) ---
 def update_procedimiento(id_procedimiento, fecha, tipo, resultados):

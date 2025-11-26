@@ -27,36 +27,50 @@ def create_area(tipo, nombre, ubicacion, id_empleado, recursos_clave): # Agrega 
             conn.close()
 
 # --- 2. LEER (READ) ---
-def read_areas():
+def read_areas(filtro_tipo=None, filtro_nombre=None):
     """
-    Lee todos los registros de áreas, incluyendo la información de la Jefatura (Empleado).
+    Lee todos los registros de áreas, incluyendo info de Jefatura.
+    Permite filtrar por tipo de área y por nombre.
     """
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor(dictionary=True) 
-        
-        # 🔑 CORRECCIÓN CLAVE: Se cambió E.puesto por E.tipo
+        cursor = conn.cursor(dictionary=True)
+
         query = """
         SELECT 
             AE.*,
             E.nombre AS nombre_jefe,
-            E.tipo AS puesto_jefe 
+            E.tipo   AS puesto_jefe
         FROM AREA_ESPECIFICA AE
         LEFT JOIN EMPLEADO E ON AE.id_empleado = E.id_empleado
-        ORDER BY AE.id_area_especifica DESC
+        WHERE 1=1
         """
-        
-        cursor.execute(query)
+        valores = []
+
+        # Filtro por tipo de área
+        if filtro_tipo:
+            query += " AND AE.tipo = %s"
+            valores.append(filtro_tipo)
+
+        # Filtro por nombre de área (LIKE)
+        if filtro_nombre:
+            query += " AND AE.nombre LIKE %s"
+            valores.append(f"%{filtro_nombre}%")
+
+        query += " ORDER BY AE.id_area_especifica DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
-        
+
     except mysql.connector.Error as err:
-        print(f"Error de lectura de áreas: {err}") 
-        return str(err) 
+        print(f"Error de lectura de áreas: {err}")
+        return str(err)
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 # --- 3. ACTUALIZAR (UPDATE) ---
 def update_area(id_area_especifica, tipo, nombre, ubicacion, id_empleado, recursos_clave):
     """

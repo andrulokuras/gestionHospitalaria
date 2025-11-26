@@ -85,6 +85,37 @@
     </div>
 </div>
 
+<form method="get" class="row g-3 mb-3">
+  <div class="col-md-4">
+    <label class="form-label">Filtrar por Tipo de Área</label>
+    <select name="buscar_tipo" class="form-select">
+      <option value="">Todas</option>
+      <option value="Quirófano"          {% if filtro_tipo == 'Quirófano' %}selected{% endif %}>Quirófano</option>
+      <option value="Laboratorio"        {% if filtro_tipo == 'Laboratorio' %}selected{% endif %}>Laboratorio</option>
+      <option value="UCI"                {% if filtro_tipo == 'UCI' %}selected{% endif %}>UCI (Unidad de Cuidados Intensivos)</option>
+      <option value="Emergencias"        {% if filtro_tipo == 'Emergencias' %}selected{% endif %}>Emergencias</option>
+      <option value="Consulta Externa"   {% if filtro_tipo == 'Consulta Externa' %}selected{% endif %}>Consulta Externa</option>
+      <option value="Radiología"         {% if filtro_tipo == 'Radiología' %}selected{% endif %}>Radiología</option>
+      <option value="Farmacia"           {% if filtro_tipo == 'Farmacia' %}selected{% endif %}>Farmacia</option>
+      <option value="Otro"               {% if filtro_tipo == 'Otro' %}selected{% endif %}>Otro</option>
+    </select>
+  </div>
+
+  <div class="col-md-5">
+    <label class="form-label">Filtrar por Nombre de Área</label>
+    <input
+      type="text"
+      name="buscar_nombre"
+      class="form-control"
+      placeholder="Ej. Sala A, Lab Central"
+      value="{{ filtro_nombre or '' }}"
+    >
+  </div>
+
+  <div class="col-md-3 d-flex align-items-end">
+    <button type="submit" class="btn btn-secondary w-100">Filtrar</button>
+  </div>
+</form>
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
         <thead class="table-dark">

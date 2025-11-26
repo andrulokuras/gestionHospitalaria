@@ -26,10 +26,15 @@
       <div class="row g-3">
 
         <!-- ID Paciente -->
-        <div class="col-md-2">
-          <label for="id_paciente" class="form-label">ID Paciente <span class="text-danger">*</span></label>
-          <input type="number" id="id_paciente" name="id_paciente"
-                 class="form-control" data-required="true">
+        <div class="col-md-4">
+          <label for="id_paciente" class="form-label">Paciente (ID / Nombre) <span class="text-danger">*</span></label>
+          <input
+            list="listaPacientesTrat"
+            id="id_paciente"
+            name="id_paciente"
+            class="form-control"
+            data-required="true"
+            placeholder="Ej: 2 - Regina Valenzuela">
         </div>
 
         <!-- Tipo -->
@@ -61,16 +66,25 @@
 
         <!-- Área -->
         <div class="col-md-3">
-          <label for="id_area_especifica" class="form-label">ID Área <span class="text-danger">*</span></label>
-          <input type="number" id="id_area_especifica" name="id_area_especifica"
-                 class="form-control" data-required="true">
+          <label for="id_area_especifica" class="form-label">Área (ID / Nombre) <span class="text-danger">*</span></label>
+          <input
+            list="listaAreasTrat"
+            id="id_area_especifica"
+            name="id_area_especifica"
+            class="form-control"
+            data-required="true"
+            placeholder="Ej: 3 - Ginecología">
         </div>
 
         <!-- Procedimiento opcional -->
         <div class="col-md-3">
-          <label for="id_procedimiento" class="form-label">ID Procedimiento (opcional)</label>
-          <input type="number" id="id_procedimiento" name="id_procedimiento"
-                 class="form-control">
+          <label for="id_procedimiento" class="form-label">Procedimiento (opcional)</label>
+          <input
+            list="listaProcedimientosTrat"
+            id="id_procedimiento"
+            name="id_procedimiento"
+            class="form-control"
+            placeholder="Ej: 5 - Biopsia">
         </div>
 
         <div class="col-12 d-grid">
@@ -175,9 +189,13 @@
                 <div class="modal-body">
 
                   <div class="mb-3">
-                    <label class="form-label">ID Paciente <span class="text-danger">*</span></label>
-                    <input type="number" name="id_paciente_edit" class="form-control"
-                           value="{{ t.id_paciente }}" data-required="true">
+                    <label class="form-label">Paciente (ID / Nombre) <span class="text-danger">*</span></label>
+                    <input
+                      list="listaPacientesTrat"
+                      name="id_paciente_edit"
+                      class="form-control"
+                      value="{{ t.id_paciente }}{% if t.nombre_paciente %} - {{ t.nombre_paciente }}{% endif %}"
+                      data-required="true">
                   </div>
 
                   <div class="mb-3">
@@ -202,15 +220,22 @@
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">ID Área <span class="text-danger">*</span></label>
-                    <input type="number" name="id_area_especifica_edit" class="form-control"
-                           value="{{ t.id_area_especifica }}" data-required="true">
+                    <label class="form-label">Área (ID / Nombre) <span class="text-danger">*</span></label>
+                    <input
+                      list="listaAreasTrat"
+                      name="id_area_especifica_edit"
+                      class="form-control"
+                      value="{{ t.id_area_especifica }}{% if t.nombre_area %} - {{ t.nombre_area }}{% endif %}"
+                      data-required="true">
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">ID Procedimiento (opcional)</label>
-                    <input type="number" name="id_procedimiento_edit" class="form-control"
-                           value="{{ t.id_procedimiento }}">
+                    <label class="form-label">Procedimiento (opcional)</label>
+                    <input
+                      list="listaProcedimientosTrat"
+                      name="id_procedimiento_edit"
+                      class="form-control"
+                      value="{% if t.id_procedimiento %}{{ t.id_procedimiento }}{% if t.nombre_procedimiento %} - {{ t.nombre_procedimiento }}{% endif %}{% endif %}">
                   </div>
 
                 </div>
@@ -252,6 +277,26 @@
     </table>
   </div>
 </div>
+
+<datalist id="listaPacientesTrat">
+  {% for p in pacientes_select %}
+    <!-- Ajusta p.nombre_paciente si tu campo se llama distinto (nombre_completo, etc.) -->
+    <option value="{{ p.id_paciente }} - {{ p.nombre_completo }}"></option>
+  {% endfor %}
+</datalist>
+
+<datalist id="listaAreasTrat">
+  {% for a in areas_select %}
+    <option value="{{ a.id_area_especifica }} - {{ a.nombre }}"></option>
+  {% endfor %}
+</datalist>
+
+<datalist id="listaProcedimientosTrat">
+  {% for pr in procedimientos_select %}
+    <!-- Ajusta tipo_procedimiento / nombre_procedimiento según tu modelo -->
+    <option value="{{ pr.id_procedimiento }} - {{ pr.tipo}}"></option>
+  {% endfor %}
+</datalist>
 
 <!-- VALIDACIÓN JS -->
 <script>

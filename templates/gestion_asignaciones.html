@@ -69,9 +69,27 @@
         </div>
     </div>
     
-    <h2>Turnos y Asignaciones Registradas</h2>
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
+<h2>Turnos y Asignaciones Registradas</h2>
+
+<form method="get" class="row g-3 mb-3">
+    <div class="col-md-8">
+        <label class="form-label">Filtrar por nombre de médico / empleado</label>
+        <input
+            type="text"
+            name="buscar_medico"
+            class="form-control"
+            placeholder="Ej. Juan Pérez, Ana López"
+            value="{{ filtro_nombre_medico or '' }}"
+        >
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-secondary w-100">Filtrar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+
             <thead class="table-dark">
                 <tr>
                     <th scope="col">ID</th>

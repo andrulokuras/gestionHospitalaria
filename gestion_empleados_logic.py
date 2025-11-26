@@ -32,10 +32,10 @@ def create_empleado(nombre, puesto, fecha_contratacion, tipo):
 
 
 # --- 2. LEER EMPLEADOS ---
-def read_empleados(id_empleado=None):
+def read_empleados(id_empleado=None, filtro_nombre=None, filtro_tipo=None):
     """
-    Obtiene todos los empleados (o uno en particular si se da id_empleado).
-    Regresa una lista de diccionarios para usarse directo en Jinja.
+    Si se pasa id_empleado, devuelve solo ese.
+    Si no, lista todos con filtros opcionales por nombre y tipo.
     """
     conn = None
     try:
@@ -46,10 +46,22 @@ def read_empleados(id_empleado=None):
             query = "SELECT * FROM EMPLEADO WHERE id_empleado = %s"
             cursor.execute(query, (id_empleado,))
             return cursor.fetchone()
-        else:
-            query = "SELECT * FROM EMPLEADO ORDER BY id_empleado DESC"
-            cursor.execute(query)
-            return cursor.fetchall()
+
+        # Listado general con filtros
+        query = "SELECT * FROM EMPLEADO WHERE 1=1"
+        valores = []
+
+        if filtro_nombre:
+            query += " AND nombre LIKE %s"
+            valores.append(f"%{filtro_nombre}%")
+
+        if filtro_tipo:
+            query += " AND tipo = %s"
+            valores.append(filtro_tipo)
+
+        query += " ORDER BY id_empleado DESC"
+        cursor.execute(query, tuple(valores))
+        return cursor.fetchall()
 
     except mysql.connector.Error as err:
         print(f"Error de lectura de empleados: {err}")
@@ -59,6 +71,7 @@ def read_empleados(id_empleado=None):
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 
 # --- 3. ACTUALIZAR EMPLEADO ---

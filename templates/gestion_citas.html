@@ -30,20 +30,56 @@
         <!-- ID Paciente -->
         <div class="col-md-3">
           <label class="form-label">ID Paciente <span class="text-danger">*</span></label>
-          <input type="number" name="id_paciente" class="form-control" data-required="true" placeholder="Ej: 2">
-        </div>
+          <input
+                list="listaPacientes"
+                name="id_paciente"
+                class="form-control"
+                data-required="true"
+                placeholder="Ej: 2 - Regina Valenzuela">
+          </div>
 
+          <datalist id="listaPacientes">
+            {% for p in pacientes_select %}
+              <!-- AQUÍ SALE COMO: 2 - Regina Valenzuela -->
+            <option value="{{ p.id_paciente }} - {{ p.nombre_completo }}"></option>
+            {% endfor %}
+          </datalist>
+
+        <!-- ID Médico -->
         <!-- ID Médico -->
         <div class="col-md-3">
           <label class="form-label">ID Médico <span class="text-danger">*</span></label>
-          <input type="number" name="id_empleado" class="form-control" data-required="true" placeholder="Ej: 3">
+          <input
+            list="listaMedicos"
+            name="id_empleado"
+            class="form-control"
+            data-required="true"
+            placeholder="Ej: 3 - Dr. Limón">
         </div>
 
+        <datalist id="listaMedicos">
+          {% for m in medicos_select %}
+            <option value="{{ m.id_empleado }} - {{ m.nombre }}"></option>
+          {% endfor %}
+        </datalist>
+
+
+        
         <!-- Área específica (opcional) -->
         <div class="col-md-3">
           <label class="form-label">ID Área (opcional)</label>
-          <input type="number" name="id_area_especifica" class="form-control">
+          <input
+            list="listaAreas"
+            name="id_area_especifica"
+            class="form-control"
+            placeholder="Ej: 1 - Ginecología">
         </div>
+
+        <datalist id="listaAreas">
+          {% for a in areas_select %}
+            <option value="{{ a.id_area_especifica }} - {{ a.nombre }}"></option>
+          {% endfor %}
+        </datalist>
 
         <!-- Estado -->
         <div class="col-md-3">
@@ -191,18 +227,25 @@
                 <div class="modal-body">
                   <div class="row g-3">
 
-                    <!-- ID Paciente -->
                     <div class="col-md-6">
                       <label class="form-label">ID Paciente <span class="text-danger">*</span></label>
-                      <input type="number" name="id_paciente_edit" class="form-control" data-required="true"
-                             value="{{ c.id_paciente }}">
+                      <input
+                        list="listaPacientes"
+                        name="id_paciente_edit"
+                        class="form-control"
+                        data-required="true"
+                        value="{{ c.id_paciente }} - {{ c.nombre_completo }}">
                     </div>
 
-                    <!-- ID Médico -->
+                    <!-- ID Médico (editar) -->
                     <div class="col-md-6">
                       <label class="form-label">ID Médico <span class="text-danger">*</span></label>
-                      <input type="number" name="id_empleado_edit" class="form-control" data-required="true"
-                             value="{{ c.id_empleado }}">
+                      <input
+                        list="listaMedicos"
+                        name="id_empleado_edit"
+                        class="form-control"
+                        data-required="true"
+                        value="{{ c.id_empleado }} - {{ c.nombre }}">
                     </div>
 
                     <!-- Fecha y Hora -->
@@ -222,8 +265,11 @@
                     <!-- Área OPCIONAL -->
                     <div class="col-md-6">
                       <label class="form-label">ID Área (opcional)</label>
-                      <input type="number" name="id_area_especifica_edit" class="form-control"
-                             value="{{ c.id_area_especifica }}">
+                      <input
+                        list="listaAreas"
+                        name="id_area_especifica_edit"
+                        class="form-control"
+                        value="{% if c.id_area_especifica %}{{ c.id_area_especifica }} - {{ c.nombre }}{% endif %}">
                     </div>
 
                     <!-- Estado -->

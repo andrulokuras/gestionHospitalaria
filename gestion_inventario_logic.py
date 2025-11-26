@@ -41,28 +41,38 @@ def create_articulo(nombre, tipo, stock_actual, stock_minimo, ubicacion, numero_
             conn.close()
 
 # ============================================
-# LEER TODO EL INVENTARIO
+# LEER TODO EL INVENTARIO (con filtros)
 # ============================================
-def read_inventario():
+def read_inventario(filtro_nombre=None, filtro_tipo=None):
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor(dictionary=True) # Devuelve los resultados como diccionarios
+        cursor = conn.cursor(dictionary=True)
 
-        query = "SELECT * FROM INVENTARIO ORDER BY nombre ASC"
+        query = "SELECT * FROM INVENTARIO WHERE 1=1"
+        valores = []
 
-        cursor.execute(query)
+        if filtro_nombre:
+            query += " AND nombre LIKE %s"
+            valores.append(f"%{filtro_nombre}%")
+
+        if filtro_tipo:
+            query += " AND tipo = %s"
+            valores.append(filtro_tipo)
+
+        query += " ORDER BY nombre ASC"
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
 
     except mysql.connector.Error as err:
-        print("Error leyendo el inventario:", err)
-        # En caso de error, devuelve una lista vacía
+        print(f"Error al leer inventario: {err}")
         return []
 
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 # ============================================
 # ACTUALIZAR ARTÍCULO DE INVENTARIO

@@ -50,20 +50,32 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Paciente (ID) <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" name="id_paciente"
-                           data-required="true">
+                    <input
+                        list="listaPacientesHosp"
+                        class="form-control"
+                        name="id_paciente"
+                        data-required="true"
+                        placeholder="Ej: 2 - Regina Valenzuela">
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Estancia (ID) <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" name="id_estancia"
-                           data-required="true">
+                    <input
+                        list="listaEstanciasHosp"
+                        class="form-control"
+                        name="id_estancia"
+                        data-required="true"
+                        placeholder="Ej: 1 - Estancia corta">
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Área Específica (ID) <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" name="id_area"
-                           data-required="true">
+                    <input
+                        list="listaAreasHosp"
+                        class="form-control"
+                        name="id_area"
+                        data-required="true"
+                        placeholder="Ej: 3 - Ginecología">
                 </div>
 
                 <div class="col-md-12">
@@ -186,26 +198,32 @@
 
                             <div class="col-md-4">
                                 <label class="form-label">Paciente (ID) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control"
-                                       name="id_paciente"
-                                       value="{{ h.id_paciente }}"
-                                       data-required="true">
+                                <input
+                                    list="listaPacientesHosp"
+                                    class="form-control"
+                                    name="id_paciente"
+                                    value="{{ h.id_paciente }} - {{ h.nombre_paciente }}"
+                                    data-required="true">
                             </div>
 
                             <div class="col-md-4">
                                 <label class="form-label">Estancia (ID) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control"
-                                       name="id_estancia"
-                                       value="{{ h.id_de_estancia }}"
-                                       data-required="true">
+                                <input
+                                    list="listaEstanciasHosp"
+                                    class="form-control"
+                                    name="id_estancia"
+                                    value="{{ h.id_de_estancia }} - {{ h.nombre_estancia }}"
+                                    data-required="true">
                             </div>
 
                             <div class="col-md-4">
                                 <label class="form-label">Área Específica (ID) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control"
-                                       name="id_area"
-                                       value="{{ h.id_area_especifica }}"
-                                       data-required="true">
+                                <input
+                                    list="listaAreasHosp"
+                                    class="form-control"
+                                    name="id_area"
+                                    value="{{ h.id_area_especifica }} - {{ h.nombre_area }}"
+                                    data-required="true">
                             </div>
 
                             <div class="col-md-12">
@@ -260,6 +278,25 @@
 </table>
 </div>
 
+<datalist id="listaPacientesHosp">
+  {% for p in pacientes_select %}
+    <!-- Cambia nombre_completo por el nombre real de tu campo -->
+    <option value="{{ p.id_paciente }} - {{ p.nombre_completo }}"></option>
+  {% endfor %}
+</datalist>
+
+<datalist id="listaEstanciasHosp">
+  {% for e in estancias_select %}
+    <!-- ajusta nombre_estancia al nombre real -->
+    <option value="{{ e.id_de_estancia }} "></option>
+  {% endfor %}
+</datalist>
+
+<datalist id="listaAreasHosp">
+  {% for a in areas_select %}
+    <option value="{{ a.id_area_especifica }} - {{ a.nombre }}"></option>
+  {% endfor %}
+</datalist>
 <!-- VALIDACIÓN JS CAMPOS OBLIGATORIOS -->
 <script>
   const formsHosp = document.querySelectorAll("#formCrearHospitalizacion, form.form-editar-hosp");

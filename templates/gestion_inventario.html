@@ -111,6 +111,33 @@
 
 <!-- TABLA INVENTARIO -->
 <h3 class="mb-3">Artículos Registrados ({{ articulos|length }})</h3>
+<form method="get" class="row g-3 mb-3">
+  <div class="col-md-5">
+    <label class="form-label">Buscar por nombre</label>
+    <input
+      type="text"
+      name="buscar_nombre"
+      class="form-control"
+      placeholder="Ej. Guantes, jeringas"
+      value="{{ filtro_nombre or '' }}"
+    >
+  </div>
+
+  <div class="col-md-5">
+    <label class="form-label">Filtrar por tipo</label>
+    <select name="buscar_tipo" class="form-select">
+      <option value="">Todos</option>
+      <option value="Insumo"      {{ 'selected' if filtro_tipo == 'Insumo' }}>Insumo Médico</option>
+      <option value="Equipo"      {{ 'selected' if filtro_tipo == 'Equipo' }}>Equipamiento</option>
+      <option value="Medicamento" {{ 'selected' if filtro_tipo == 'Medicamento' }}>Medicamento</option>
+      <option value="Material"    {{ 'selected' if filtro_tipo == 'Material' }}>Material</option>
+    </select>
+  </div>
+
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-secondary w-100">Filtrar</button>
+  </div>
+</form>
 
 <div class="table-responsive">
     <table class="table table-hover table-striped">

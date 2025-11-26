@@ -38,12 +38,13 @@
                     <label for="medico_responsable" class="form-label">
                         Médico Responsable (ID/Nombre) <span class="text-danger">*</span>
                     </label>
-                    <input type="text"
-                           class="form-control"
-                           id="medico_responsable"
-                           name="medico_responsable"
-                           placeholder="Ej: Dr. Pérez o ID 101"
-                           data-required="true">
+                    <input
+                        list="listaMedicosEstancias"
+                        class="form-control"
+                        id="medico_responsable"
+                        name="medico_responsable"
+                        placeholder="Ej: 3 - Dr. Limón"
+                        data-required="true">
                 </div>
                 
                 <!-- Hora (Registro) -->
@@ -63,12 +64,13 @@
                     <label for="id_procedimientos" class="form-label">
                         ID de Procedimiento Asociado <span class="text-danger">*</span>
                     </label>
-                    <input type="number"
-                           class="form-control"
-                           id="id_procedimientos"
-                           name="id_procedimientos"
-                           placeholder="Ej: 5 (ID del procedimiento)"
-                           data-required="true">
+                    <input
+                        list="listaProcedimientosEstancias"
+                        class="form-control"
+                        id="id_procedimientos"
+                        name="id_procedimientos"
+                        placeholder="Ej: 5 - Biopsia"
+                        data-required="true">
                 </div>
             </div>
 
@@ -187,12 +189,13 @@
                         <label for="medico_responsable_edit_{{ estancia.id_de_estancia }}" class="form-label">
                             Médico Responsable (ID/Nombre) <span class="text-danger">*</span>
                         </label>
-                        <input type="text"
-                               class="form-control"
-                               id="medico_responsable_edit_{{ estancia.id_de_estancia }}"
-                               name="medico_responsable_edit"
-                               value="{{ estancia.medico_responsable }}"
-                               data-required="true">
+                        <input
+                            list="listaMedicosEstancias"
+                            class="form-control"
+                            id="medico_responsable_edit_{{ estancia.id_de_estancia }}"
+                            name="medico_responsable_edit"
+                            value="{{ estancia.id_medico_responsable }} - {{ estancia.nombre_medico }}"
+                            data-required="true">
                     </div>
 
                     <div class="mb-3">
@@ -211,12 +214,13 @@
                         <label for="id_procedimientos_edit_{{ estancia.id_de_estancia }}" class="form-label">
                             ID de Procedimiento Asociado <span class="text-danger">*</span>
                         </label>
-                        <input type="number"
-                               class="form-control"
-                               id="id_procedimientos_edit_{{ estancia.id_de_estancia }}"
-                               name="id_procedimientos_edit"
-                               value="{{ estancia.id_procedimientos }}"
-                               data-required="true">
+                        <input
+                            list="listaProcedimientosEstancias"
+                            class="form-control"
+                            id="id_procedimientos_edit_{{ estancia.id_de_estancia }}"
+                            name="id_procedimientos_edit"
+                            value="{{ estancia.id_procedimientos }} - {{ estancia.tipo_procedimiento }}"
+                            data-required="true">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -265,6 +269,20 @@
 </div>
 
 {% endfor %}
+
+<datalist id="listaMedicosEstancias">
+  {% for m in medicos_select %}
+    <!-- ajusta nombre_empleado si tu campo se llama distinto (nombre, nombre_completo, etc.) -->
+    <option value="{{ m.id_empleado }} - {{ m.nombre }}"></option>
+  {% endfor %}
+</datalist>
+
+<datalist id="listaProcedimientosEstancias">
+  {% for p in procedimientos_select %}
+    <!-- ajusta tipo_procedimiento si tu campo se llama distinto -->
+    <option value="{{ p.id_procedimiento }} - {{ p.tipo }}"></option>
+  {% endfor %}
+</datalist>
 
 <!-- VALIDACIÓN JS CAMPOS OBLIGATORIOS -->
 <script>

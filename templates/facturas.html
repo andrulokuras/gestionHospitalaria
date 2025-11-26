@@ -120,6 +120,34 @@
 <!-- ============================= -->
 
 <h2 class="h4 mb-3">Facturas registradas</h2>
+<form method="get" class="row g-3 mb-3">
+  <div class="col-md-4">
+    <label class="form-label">Filtrar por estado</label>
+    <select name="buscar_estado" class="form-select">
+      <option value="">Todos</option>
+      <option value="Pendiente" {{ 'selected' if filtro_estado == 'Pendiente' }}>Pendiente</option>
+      <option value="Pagada"    {{ 'selected' if filtro_estado == 'Pagada' }}>Pagada</option>
+      <option value="Parcial"   {{ 'selected' if filtro_estado == 'Parcial' }}>Parcial</option>
+      <option value="Cancelada" {{ 'selected' if filtro_estado == 'Cancelada' }}>Cancelada</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">Filtrar por ID de paciente</label>
+    <input
+      type="number"
+      name="buscar_paciente"
+      class="form-control"
+      min="1"
+      placeholder="Ej. 1"
+      value="{{ filtro_paciente or '' }}"
+    >
+  </div>
+
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-secondary w-100">Filtrar</button>
+  </div>
+</form>
 
 {% if not facturas %}
     <div class="alert alert-info">

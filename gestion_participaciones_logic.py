@@ -7,35 +7,49 @@ from db_connection import DB_CONFIG
 # FUNCIONES DE LECTURA (READ)
 # ----------------------------------------------------------------------
 
-def read_participaciones():
-    """Recupera todas las participaciones con información de empleado y paciente."""
+def read_participaciones(filtro_tipo_intervencion=None, filtro_nombre_empleado=None):
+    """Recupera todas las participaciones con info de empleado, tratamiento y paciente."""
     conn = None
     cursor = None
     participaciones = []
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        # Usar dictionary=True para que los resultados sean diccionarios (acceso por nombre de columna)
-        cursor = conn.cursor(dictionary=True) 
-        
-        # Consulta con JOINs para obtener nombres legibles para la tabla HTML
+        cursor = conn.cursor(dictionary=True)
+
         query = """
         SELECT 
-            p.id_participacion, 
-            p.tipo_intervencion, 
-            p.fecha, 
-            p.rol, 
-            p.id_tratamiento, 
+            p.id_participacion,
+            p.tipo_intervencion,
+            p.fecha,
+            p.rol,
+            p.id_tratamiento,
             p.id_empleado,
-            e.nombre AS nombre_empleado,         -- Nombre del Empleado (para columna Empleado)
-            t.id_paciente AS id_paciente -- ID del Paciente (para columna Tratamiento)
+            e.nombre AS nombre_empleado,
+            t.tipo   AS tipo_tratamiento,
+            pac.nombre_completo AS nombre_paciente
         FROM PARTICIPACION p
-        JOIN EMPLEADO e ON p.id_empleado = e.id_empleado
-        JOIN TRATAMIENTO t ON p.id_tratamiento = t.id_tratamiento
-        ORDER BY p.id_participacion DESC;
+        JOIN EMPLEADO    e   ON p.id_empleado    = e.id_empleado
+        JOIN TRATAMIENTO t   ON p.id_tratamiento = t.id_tratamiento
+        LEFT JOIN PACIENTE pac ON t.id_paciente  = pac.id_paciente
+        WHERE 1=1
         """
-        cursor.execute(query)
+        valores = []
+
+        # Filtro por tipo de intervención
+        if filtro_tipo_intervencion:
+            query += " AND p.tipo_intervencion LIKE %s"
+            valores.append(f"%{filtro_tipo_intervencion}%")
+
+        # Filtro por nombre de empleado
+        if filtro_nombre_empleado:
+            query += " AND e.nombre LIKE %s"
+            valores.append(f"%{filtro_nombre_empleado}%")
+
+        query += " ORDER BY p.id_participacion DESC"
+
+        cursor.execute(query, tuple(valores))
         participaciones = cursor.fetchall()
-        
+
     except mysql.connector.Error as err:
         print(f"Error al leer participaciones: {err}")
     except Exception as e:
@@ -46,6 +60,7 @@ def read_participaciones():
             conn.close()
             
     return participaciones
+
 
 # ----------------------------------------------------------------------
 # FUNCIONES DE CREACIÓN (CREATE)

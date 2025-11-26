@@ -190,8 +190,22 @@ def gestion_empleados():
         return redirect(url_for('gestion_empleados'))
 
     
-    empleados = read_empleados() 
-    return render_template('gestion_empleados.html', empleados=empleados)
+    # GET: filtros
+    filtro_nombre = request.args.get('buscar_nombre', '').strip()
+    filtro_tipo = request.args.get('buscar_tipo', '').strip()
+
+    empleados = read_empleados(
+        filtro_nombre=filtro_nombre or None,
+        filtro_tipo=filtro_tipo or None
+    )
+
+    return render_template(
+        'gestion_empleados.html',
+        empleados=empleados,
+        filtro_nombre=filtro_nombre,
+        filtro_tipo=filtro_tipo
+    )
+
 
 # GESTIÓN DE PACIENTES
 @app.route('/pacientes', methods=['GET', 'POST'])
@@ -321,9 +335,19 @@ def gestion_procedimientos():
 
         return redirect(url_for('gestion_procedimientos'))
 
-    # Lógica GET (Mostrar la tabla)
-    procedimientos = read_procedimientos()
-    return render_template('gestion_procedimientos.html', procedimientos=procedimientos)
+    # Lógica GET (Mostrar la tabla con filtro)
+    filtro_tipo = request.args.get('buscar_tipo', '').strip()
+
+    procedimientos = read_procedimientos(
+        filtro_tipo=filtro_tipo or None
+    )
+
+    return render_template(
+        'gestion_procedimientos.html',
+        procedimientos=procedimientos,
+        filtro_tipo=filtro_tipo
+    )
+
 
 
 # GESTIÓN DE ÁREAS
@@ -400,14 +424,26 @@ def gestion_areas():
         return redirect(url_for('gestion_areas'))
 
 
-    # Lógica GET (Mostrar la tabla)
-    areas = read_areas()
-    
+    # Lógica GET (Mostrar la tabla con filtros)
+    filtro_tipo = request.args.get('buscar_tipo', '').strip()
+    filtro_nombre = request.args.get('buscar_nombre', '').strip()
+
+    areas = read_areas(
+        filtro_tipo=filtro_tipo or None,
+        filtro_nombre=filtro_nombre or None
+    )
+
     if isinstance(areas, str):
         flash(f"Error al cargar las áreas: {areas}", "danger")
-        areas = [] # Establecer como lista vacía para evitar error al renderizar
-        
-    return render_template('areas_especificas.html', areas=areas)
+        areas = []
+
+    return render_template(
+        'areas_especificas.html',
+        areas=areas,
+        filtro_tipo=filtro_tipo,
+        filtro_nombre=filtro_nombre
+    )
+
 
 # GESTIÓN DE TRATAMIENTOS
 @app.route('/tratamientos', methods=['GET', 'POST'])
@@ -417,14 +453,27 @@ def gestion_tratamientos():
         # 1. CREATE
         if 'create_tratamiento' in request.form:
             try:
-                id_paciente = request.form['id_paciente']
-                tipo = request.form['tipo']
-                fecha_inicio = request.form['fecha_inicio']
-                estado_actual = request.form['estado_actual']
-                id_area_especifica = request.form['id_area_especifica']
-                id_procedimiento = request.form.get('id_procedimiento') or None
+                # valores crudos: "2 - Regina", "3 - Ginecología", "5 - Biopsia"
+                raw_paciente = request.form.get('id_paciente', '')
+                raw_area     = request.form.get('id_area_especifica', '')
+                raw_proc     = request.form.get('id_procedimiento', '')
 
-                resultado = create_tratamiento(id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_procedimiento)
+                id_paciente        = extraer_id(raw_paciente)
+                id_area_especifica = extraer_id(raw_area)
+                id_procedimiento   = extraer_id(raw_proc) if raw_proc else None
+
+                tipo          = request.form['tipo']
+                fecha_inicio  = request.form['fecha_inicio']
+                estado_actual = request.form['estado_actual']
+
+                resultado = create_tratamiento(
+                    id_paciente,
+                    tipo,
+                    fecha_inicio,
+                    estado_actual,
+                    id_area_especifica,
+                    id_procedimiento
+                )
 
                 if resultado is True:
                     flash('Tratamiento registrado con éxito.', 'success')
@@ -450,14 +499,28 @@ def gestion_tratamientos():
         elif 'update_tratamiento' in request.form:
             try:
                 id_tratamiento = request.form['id_tratamiento_actualizar']
-                id_paciente = request.form['id_paciente_edit']
-                tipo = request.form['tipo_edit']
-                fecha_inicio = request.form['fecha_inicio_edit']
-                estado_actual = request.form['estado_actual_edit']
-                id_area_especifica = request.form['id_area_especifica_edit']
-                id_procedimiento = request.form.get('id_procedimient0_edit') or None
 
-                resultado = update_tratamiento(id_tratamiento, id_paciente, tipo, fecha_inicio, estado_actual, id_area_especifica, id_procedimiento)
+                raw_paciente = request.form.get('id_paciente_edit', '')
+                raw_area     = request.form.get('id_area_especifica_edit', '')
+                raw_proc     = request.form.get('id_procedimiento_edit', '')
+
+                id_paciente        = extraer_id(raw_paciente)
+                id_area_especifica = extraer_id(raw_area)
+                id_procedimiento   = extraer_id(raw_proc) if raw_proc else None
+
+                tipo          = request.form['tipo_edit']
+                fecha_inicio  = request.form['fecha_inicio_edit']
+                estado_actual = request.form['estado_actual_edit']
+
+                resultado = update_tratamiento(
+                    id_tratamiento,
+                    id_paciente,
+                    tipo,
+                    fecha_inicio,
+                    estado_actual,
+                    id_area_especifica,
+                    id_procedimiento
+                )
 
                 if resultado is True:
                     flash(f'Tratamiento ID {id_tratamiento} actualizado con éxito.', 'success')
@@ -475,10 +538,18 @@ def gestion_tratamientos():
         filtro_nombre_paciente=filtro_nombre or None
     )
 
+    # listas para los datalist
+    pacientes_select      = read_pacientes(filtro_nombre=None, filtro_seguro=None)
+    areas_select          = read_areas()
+    procedimientos_select = read_procedimientos()
+
     return render_template(
         'gestion_tratamientos.html',
         tratamientos=tratamientos,
-        filtro_nombre=filtro_nombre
+        filtro_nombre=filtro_nombre,
+        pacientes_select=pacientes_select,
+        areas_select=areas_select,
+        procedimientos_select=procedimientos_select
     )
 
 
@@ -492,11 +563,14 @@ def gestion_estancias():
         # 1. CREAR
         if 'create_estancia' in request.form:
             try:
-                medico_responsable = request.form['medico_responsable']      # name del input en el form
+                raw_medico = request.form['medico_responsable']      # "3 - Dr. Limón"
                 hora = request.form['hora']
-                id_procedimientos = request.form['id_procedimientos']
+                raw_proc = request.form['id_procedimientos']         # "5 - Biopsia" por ej.
 
-                resultado = create_estancia(medico_responsable, hora, id_procedimientos)
+                id_medico_responsable = extraer_id(raw_medico)
+                id_procedimientos = extraer_id(raw_proc)
+
+                resultado = create_estancia(id_medico_responsable, hora, id_procedimientos)
 
                 if resultado is True:
                     flash('Estancia registrada con éxito.', 'success')
@@ -522,11 +596,15 @@ def gestion_estancias():
         elif 'update_estancia' in request.form:
             try:
                 id_estancia = request.form['id_estancia_actualizar']
-                medico_responsable = request.form['medico_responsable_edit']
-                hora = request.form['hora_edit']
-                id_procedimientos = request.form['id_procedimientos_edit']
 
-                resultado = update_estancia(id_estancia, medico_responsable, hora, id_procedimientos)
+                raw_medico = request.form['medico_responsable_edit']
+                hora = request.form['hora_edit']
+                raw_proc = request.form['id_procedimientos_edit']
+
+                id_medico_responsable = extraer_id(raw_medico)
+                id_procedimientos = extraer_id(raw_proc)
+
+                resultado = update_estancia(id_estancia, id_medico_responsable, hora, id_procedimientos)
 
                 if resultado is True:
                     flash(f'Estancia ID {id_estancia} actualizada con éxito.', 'success')
@@ -544,19 +622,29 @@ def gestion_estancias():
         filtro_medico=filtro_medico or None
     )
 
+    # Listas para los datalist
+    medicos_select = read_empleados()                 # luego filtramos si quieres solo médicos
+    # si solo quieres tipo "medico":
+    medicos_select = [
+        m for m in medicos_select
+        if getattr(m, 'tipo', None) == 'medico'
+        or (isinstance(m, dict) and m.get('tipo') == 'medico')
+    ]
+
+    procedimientos_select = read_procedimientos()
+
     return render_template(
         'estancias.html',
         estancias=estancias,
-        filtro_medico=filtro_medico
+        filtro_medico=filtro_medico,
+        medicos_select=medicos_select,
+        procedimientos_select=procedimientos_select
     )
 
 
 # HOSPITALIZACIONES
-from gestion_hospitalizaciones_logic import (
-    create_hospitalizacion, read_hospitalizaciones,
-    update_hospitalizacion, delete_hospitalizacion
-)
 
+from gestion_hospitalizaciones_logic import ( create_hospitalizacion, read_hospitalizaciones, update_hospitalizacion, delete_hospitalizacion )
 @app.route('/hospitalizaciones', methods=['GET', 'POST'])
 @requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
 def gestion_hospitalizaciones():
@@ -568,14 +656,23 @@ def gestion_hospitalizaciones():
             fecha_egreso = request.form.get('fecha_egreso') or None
             motivo = request.form.get('motivo') or None
 
+            # valores crudos: "2 - Regina Valenzuela", "3 - Estancia corta", etc.
+            raw_paciente  = request.form.get('id_paciente', '')
+            raw_estancia  = request.form.get('id_estancia', '')
+            raw_area      = request.form.get('id_area', '')
+
+            id_paciente   = extraer_id(raw_paciente)
+            id_estancia   = extraer_id(raw_estancia)
+            id_area       = extraer_id(raw_area)
+
             result = create_hospitalizacion(
                 request.form['fecha_ingreso'],
                 fecha_egreso,
                 motivo,
                 request.form.get('habitacion'),
-                request.form['id_paciente'],
-                request.form.get('id_estancia'),
-                request.form['id_area']
+                id_paciente,
+                id_estancia,
+                id_area
             )
             if result is True:
                 flash("Hospitalización registrada correctamente!", "success")
@@ -588,15 +685,23 @@ def gestion_hospitalizaciones():
             fecha_egreso = request.form.get('fecha_egreso') or None
             motivo = request.form.get('motivo') or None
 
+            raw_paciente  = request.form.get('id_paciente', '')
+            raw_estancia  = request.form.get('id_estancia', '')
+            raw_area      = request.form.get('id_area', '')
+
+            id_paciente   = extraer_id(raw_paciente)
+            id_estancia   = extraer_id(raw_estancia)
+            id_area       = extraer_id(raw_area)
+
             result = update_hospitalizacion(
                 request.form['id_hosp'],
                 request.form['fecha_ingreso'],
                 fecha_egreso,
                 motivo,
                 request.form.get('habitacion'),
-                request.form['id_paciente'],
-                request.form.get('id_estancia'),
-                request.form['id_area']
+                id_paciente,
+                id_estancia,
+                id_area
             )
             flash("Hospitalización actualizada!", "success")
 
@@ -612,6 +717,23 @@ def gestion_hospitalizaciones():
 
     hospitalizaciones = read_hospitalizaciones(
         filtro_nombre=filtro_nombre or None
+    )
+
+    # listas para los datalist
+    pacientes_select = read_pacientes(
+        filtro_nombre=None,
+        filtro_seguro=None
+    )
+    estancias_select = read_estancias()
+    areas_select     = read_areas()
+
+    return render_template(
+        "hospitalizaciones.html",
+        hospitalizaciones=hospitalizaciones,
+        filtro_nombre=filtro_nombre,
+        pacientes_select=pacientes_select,
+        estancias_select=estancias_select,
+        areas_select=areas_select
     )
 
     return render_template(
@@ -677,9 +799,22 @@ def gestion_participaciones():
 
         return redirect(url_for('gestion_participaciones'))
 
-    # GET: mostrar tabla
-    participaciones = read_participaciones()
-    return render_template('gestion_participaciones.html', participaciones=participaciones)
+    # GET: mostrar tabla con filtros
+    filtro_tipo_intervencion = request.args.get("buscar_tipo_intervencion", "").strip()
+    filtro_nombre_empleado   = request.args.get("buscar_empleado", "").strip()
+
+    participaciones = read_participaciones(
+        filtro_tipo_intervencion=filtro_tipo_intervencion or None,
+        filtro_nombre_empleado=filtro_nombre_empleado or None
+    )
+
+    return render_template(
+        'gestion_participaciones.html',
+        participaciones=participaciones,
+        filtro_tipo_intervencion=filtro_tipo_intervencion,
+        filtro_nombre_empleado=filtro_nombre_empleado
+    )
+
 
 # FACTURAS
 @app.route('/facturas', methods=['GET', 'POST'])
@@ -765,17 +900,43 @@ def gestion_facturas():
                 flash(f"Error al eliminar factura: {resultado}", "danger")
             return redirect(url_for("gestion_facturas"))
 
-    # GET: leer facturas y sus pagos
-    facturas = read_facturas()
+    # GET: leer facturas con filtros
+    filtro_estado = request.args.get("buscar_estado", "").strip()
+    filtro_paciente = request.args.get("buscar_paciente", "").strip()
+
+    filtro_paciente_int = None
+    if filtro_paciente:
+        try:
+            filtro_paciente_int = int(filtro_paciente)
+        except ValueError:
+            filtro_paciente_int = None  # si no es número, no filtra por paciente
+
+    facturas = read_facturas(
+        filtro_estado=filtro_estado or None,
+        filtro_paciente=filtro_paciente_int
+    )
+
     pagos_por_factura = {
-        f["id_factura"]: read_pagos_por_factura(f["id_factura"]) for f in facturas
+        f["id_factura"]: read_pagos_por_factura(f["id_factura"])
+        for f in facturas
     }
 
     return render_template(
         "facturas.html",
         facturas=facturas,
         pagos_por_factura=pagos_por_factura,
+        filtro_estado=filtro_estado,
+        filtro_paciente=filtro_paciente,
     )
+
+
+# ---- Helper para limpiar IDs ----
+def extraer_id(valor):
+    """Recibe algo como '2 - Regina Valenzuela' y devuelve '2'."""
+    if not valor:
+        return None
+    return valor.split('-', 1)[0].strip()
+
 
 # CITAS
 @app.route('/citas', methods=['GET', 'POST'])
@@ -785,20 +946,24 @@ def gestion_citas():
         # 1. CREAR
         if 'create_cita' in request.form:
             try:
-                # Convertir vacíos a None para campos opcionales
-                area = request.form['id_area_especifica']
-                if not area: area = None
+                raw_paciente = request.form.get('id_paciente', '')
+                raw_medico   = request.form.get('id_empleado', '')
+                raw_area     = request.form.get('id_area_especifica', '')
+
+                id_paciente = extraer_id(raw_paciente)
+                id_medico   = extraer_id(raw_medico)
+                area        = extraer_id(raw_area) if raw_area else None
 
                 resultado = create_cita(
-                    request.form['id_paciente'],
-                    request.form['id_empleado'], # Médico
+                    id_paciente,                    # solo el número
+                    id_medico,                      # solo el número
                     area,
                     request.form['fecha_hora_inicio'],
                     request.form['duracion_minutos'],
-                    request.form['motivo_consulta'],
+                    request.form.get('motivo_consulta', ''),
                     request.form['estado']
                 )
-                
+        
                 if resultado is True:
                     flash('Cita agendada con éxito.', 'success')
                 else:
@@ -809,17 +974,22 @@ def gestion_citas():
         # 2. ACTUALIZAR
         elif 'update_cita' in request.form:
             try:
-                area = request.form['id_area_especifica_edit']
-                if not area: area = None
+                raw_paciente = request.form.get('id_paciente_edit', '')
+                raw_medico   = request.form.get('id_empleado_edit', '')
+                raw_area     = request.form.get('id_area_especifica_edit', '')
+
+                id_paciente = extraer_id(raw_paciente)
+                id_medico   = extraer_id(raw_medico)
+                area        = extraer_id(raw_area) if raw_area else None
 
                 resultado = update_cita(
                     request.form['id_cita_actualizar'],
-                    request.form['id_paciente_edit'],
-                    request.form['id_empleado_edit'],
-                    area,
+                    id_paciente,                    # solo ID numérico
+                    id_medico,                      # solo ID numérico
+                    area,                           # puede ser None
                     request.form['fecha_hora_inicio_edit'],
                     request.form['duracion_minutos_edit'],
-                    request.form['motivo_consulta_edit'],
+                    request.form.get('motivo_consulta_edit', ''),
                     request.form['estado_edit']
                 )
 
@@ -852,10 +1022,27 @@ def gestion_citas():
         filtro_estado=filtro_estado or None
     )
 
+    pacientes_select = read_pacientes(
+        filtro_nombre=None,
+        filtro_seguro=None
+    )
+
+    empleados_select = read_empleados()          # luego filtramos solo médicos
+    medicos_select = [
+        e for e in empleados_select
+        if getattr(e, 'tipo', None) == 'medico'
+        or (isinstance(e, dict) and e.get('tipo') == 'medico')
+    ]
+
+    areas_select = read_areas()
+
     return render_template(
         'gestion_citas.html',
         citas=citas,
-        filtro_estado=filtro_estado
+        filtro_estado=filtro_estado,
+        pacientes_select=pacientes_select,
+        medicos_select=medicos_select,
+        areas_select=areas_select
     )
 
 
@@ -972,8 +1159,22 @@ def gestion_inventario():
         return redirect(url_for('gestion_inventario'))
 
     # Lógica GET: Leer el inventario y mostrar la plantilla
-    articulos = read_inventario()
-    return render_template('gestion_inventario.html', articulos=articulos)
+    # Lógica GET: filtros
+    filtro_nombre = request.args.get('buscar_nombre', '').strip()
+    filtro_tipo = request.args.get('buscar_tipo', '').strip()
+
+    articulos = read_inventario(
+        filtro_nombre=filtro_nombre or None,
+        filtro_tipo=filtro_tipo or None
+    )
+
+    return render_template(
+        'gestion_inventario.html',
+        articulos=articulos,
+        filtro_nombre=filtro_nombre,
+        filtro_tipo=filtro_tipo
+    )
+
 
 # ASIGNACIONES
 @app.route('/asignaciones', methods=['GET', 'POST'])
@@ -1038,15 +1239,23 @@ def gestion_asignaciones():
         return redirect(url_for('gestion_asignaciones'))
 
     # ------------------ LÓGICA GET ------------------
+    # Filtro por nombre de médico/empleado
+    filtro_nombre_medico = request.args.get("buscar_medico", "").strip()
+
     try:
-        # 1. Leer todas las asignaciones (para la tabla principal)
-        asignaciones = read_asignaciones()
+        # 1. Leer asignaciones filtradas
+        asignaciones = read_asignaciones(
+            filtro_nombre_medico=filtro_nombre_medico or None
+        )
         empleados = read_empleados()
         areas = read_areas()
         
     except Exception as e:
-        # Si hay un error de BD en la lectura, mostramos un mensaje
         flash(f'Error crítico al cargar datos base (Empleados, Áreas o Asignaciones): {e}', 'danger')
+        asignaciones = []
+        empleados = []
+        areas = []
+
         
     if isinstance(empleados, str) or isinstance(areas, str):
          flash("Error al cargar datos base (Empleados/Áreas) - La función de lectura devolvió un error de string.", "danger")
@@ -1056,7 +1265,8 @@ def gestion_asignaciones():
     return render_template('gestion_asignaciones.html', 
                            asignaciones=asignaciones,
                            empleados=empleados, # Asegúrate de que tu plantilla use 'empleados' (plural)
-                           areas=areas
+                           areas=areas,
+                           filtro_nombre_medico=filtro_nombre_medico
                            )
 
 if __name__ == '__main__':

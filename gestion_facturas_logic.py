@@ -62,12 +62,10 @@ def create_factura(
             conn.close()
 
 
-def read_facturas():
+def read_facturas(filtro_estado=None, filtro_paciente=None):
     """
-    Lee TODAS las facturas y, para cada una, calcula:
-      - total_pagado = suma de pagos en tabla PAGO
-      - saldo = total_neto - total_pagado (si total_neto <= 0, saldo = 0)
-    Devuelve una lista de diccionarios lista para usar en facturas.html
+    Lee facturas, calcula total_pagado y saldo.
+    Permite filtrar por estado e id_paciente.
     """
     conn = None
     cursor = None
@@ -88,9 +86,21 @@ def read_facturas():
                 observaciones,
                 total_neto
             FROM FACTURA
-            ORDER BY id_factura DESC
+            WHERE 1=1
         """
-        cursor.execute(query)
+        valores = []
+
+        if filtro_estado:
+            query += " AND estado = %s"
+            valores.append(filtro_estado)
+
+        if filtro_paciente:
+            query += " AND id_paciente = %s"
+            valores.append(filtro_paciente)
+
+        query += " ORDER BY id_factura DESC"
+
+        cursor.execute(query, tuple(valores))
         facturas = cursor.fetchall()
 
         # Para cada factura, sumar pagos y calcular saldo
@@ -101,14 +111,11 @@ def read_facturas():
             total_pagado = sum(float(p["monto"]) for p in pagos) if pagos else 0.0
             total_neto = float(f.get("total_neto") or 0.0)
 
-            # Guardamos estos campos extras para mostrarlos en el template
             f["total_pagado"] = total_pagado
 
             if total_neto > 0:
                 f["saldo"] = total_neto - total_pagado
             else:
-                # Si no estamos manejando aún el total de la factura,
-                # dejamos el saldo en 0 para que no salga negativo.
                 f["saldo"] = 0.0
 
     except mysql.connector.Error as err:
@@ -122,6 +129,7 @@ def read_facturas():
             conn.close()
 
     return facturas
+
 
 
 def delete_factura(id_factura):
