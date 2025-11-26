@@ -11,7 +11,7 @@ def create_area(tipo, nombre, ubicacion, id_empleado, recursos_clave): # Agrega 
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        INSERT INTO AREA_ESPECIFICA (tipo, nombre, ubicacion, id_empleado, recursos_clave)
+        INSERT INTO area_especifica (tipo, nombre, ubicacion, id_empleado, recursos_clave)
         VALUES (%s, %s, %s, %s, %s)
         """ # Agrega las nuevas columnas
         valores = (tipo, nombre, ubicacion, id_empleado, recursos_clave) # Agrega los nuevos valores
@@ -42,8 +42,8 @@ def read_areas(filtro_tipo=None, filtro_nombre=None):
             AE.*,
             E.nombre AS nombre_jefe,
             E.tipo   AS puesto_jefe
-        FROM AREA_ESPECIFICA AE
-        LEFT JOIN EMPLEADO E ON AE.id_empleado = E.id_empleado
+        FROM area_especifica AE
+        LEFT JOIN empleado E ON AE.id_empleado = E.id_empleado
         WHERE 1=1
         """
         valores = []
@@ -81,7 +81,7 @@ def update_area(id_area_especifica, tipo, nombre, ubicacion, id_empleado, recurs
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        UPDATE AREA_ESPECIFICA 
+        UPDATE area_especifica 
         SET tipo = %s, nombre = %s, ubicacion = %s, id_empleado = %s, recursos_clave = %s
         WHERE id_area_especifica = %s
         """

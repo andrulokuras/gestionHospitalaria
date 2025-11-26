@@ -11,7 +11,7 @@ def create_paciente(nombre_completo, fecha_nacimiento, genero, domicilio, telefo
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        INSERT INTO PACIENTE (nombre_completo, fecha_nacimiento, genero, domicilio, telefono, seguro_medico)
+        INSERT INTO paciente (nombre_completo, fecha_nacimiento, genero, domicilio, telefono, seguro_medico)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         # El orden de los datos debe coincidir con el orden de las columnas en la query
@@ -35,7 +35,7 @@ def read_pacientes(filtro_nombre=None, filtro_seguro=None):
         cursor = conn.cursor(dictionary=True)
 
         # Base de la consulta
-        query = "SELECT * FROM PACIENTE WHERE 1=1"
+        query = "SELECT * FROM paciente WHERE 1=1"
         valores = []
 
         # Filtro por nombre (LIKE)
@@ -69,7 +69,7 @@ def update_paciente(id_paciente, nombre_completo, fecha_nacimiento, genero, domi
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        UPDATE PACIENTE 
+        UPDATE paciente 
         SET nombre_completo = %s, fecha_nacimiento = %s, genero = %s, domicilio = %s, 
             telefono = %s, seguro_medico = %s
         WHERE id_paciente = %s
@@ -91,7 +91,7 @@ def delete_paciente(id_paciente):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        query = "DELETE FROM PACIENTE WHERE id_paciente = %s"
+        query = "DELETE FROM paciente WHERE id_paciente = %s"
         cursor.execute(query, (id_paciente,))
         conn.commit()
         return cursor.rowcount > 0 

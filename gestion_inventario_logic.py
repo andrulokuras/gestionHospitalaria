@@ -12,7 +12,7 @@ def create_articulo(nombre, tipo, stock_actual, stock_minimo, ubicacion, numero_
         cursor = conn.cursor()
 
         query = """
-        INSERT INTO INVENTARIO (
+        INSERT INTO inventario (
             nombre, tipo, stock_actual, stock_minimo, ubicacion, 
             numero_lote_serie, fecha_vencimiento, fecha_mantenimiento, descripcion
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -49,7 +49,7 @@ def read_inventario(filtro_nombre=None, filtro_tipo=None):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
 
-        query = "SELECT * FROM INVENTARIO WHERE 1=1"
+        query = "SELECT * FROM inventario WHERE 1=1"
         valores = []
 
         if filtro_nombre:
@@ -84,7 +84,7 @@ def update_articulo(id_articulo, nombre, tipo, stock_actual, stock_minimo, ubica
         cursor = conn.cursor()
 
         query = """
-        UPDATE INVENTARIO 
+        UPDATE inventario 
         SET nombre = %s, tipo = %s, stock_actual = %s, stock_minimo = %s, 
             ubicacion = %s, numero_lote_serie = %s, fecha_vencimiento = %s, 
             fecha_mantenimiento = %s, descripcion = %s
@@ -121,7 +121,7 @@ def delete_articulo(id_articulo):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        query = "DELETE FROM INVENTARIO WHERE id_articulo = %s"
+        query = "DELETE FROM inventario WHERE id_articulo = %s"
         cursor.execute(query, (id_articulo,))
         conn.commit()
         # Devuelve True si se eliminó al menos una fila

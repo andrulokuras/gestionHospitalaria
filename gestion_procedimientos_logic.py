@@ -9,7 +9,7 @@ def create_procedimiento(fecha, tipo, resultados):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        INSERT INTO PROCEDIMIENTOS (fecha, tipo, resultados)
+        INSERT INTO procedimientos (fecha, tipo, resultados)
         VALUES (%s, %s, %s)
         """
         valores = (fecha, tipo, resultados)
@@ -36,7 +36,7 @@ def read_procedimientos(filtro_tipo=None):
             DATE_FORMAT(fecha, '%Y-%m-%d') AS fecha,
             tipo, 
             resultados 
-        FROM PROCEDIMIENTOS
+        FROM procedimientos
         WHERE 1=1
         """
         valores = []
@@ -66,7 +66,7 @@ def update_procedimiento(id_procedimiento, fecha, tipo, resultados):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        UPDATE PROCEDIMIENTOS 
+        UPDATE procedimientos 
         SET fecha = %s, tipo = %s, resultados = %s
         WHERE id_procedimiento = %s
         """
@@ -88,7 +88,7 @@ def delete_procedimiento(id_procedimiento):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        query = "DELETE FROM PROCEDIMIENTOS WHERE id_procedimiento = %s"
+        query = "DELETE FROM procedimientos WHERE id_procedimiento = %s"
         
         cursor.execute(query, (id_procedimiento,))
         conn.commit()

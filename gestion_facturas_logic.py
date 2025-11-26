@@ -27,7 +27,7 @@ def create_factura(
         cursor = conn.cursor()
 
         query = """
-            INSERT INTO FACTURA (
+            INSERT INTO factura (
                 id_paciente,
                 fecha_emision,
                 fecha_vencimiento,
@@ -85,7 +85,7 @@ def read_facturas(filtro_estado=None, filtro_paciente=None):
                 metodo_pago_preferido,
                 observaciones,
                 total_neto
-            FROM FACTURA
+            FROM factura
             WHERE 1=1
         """
         valores = []
@@ -146,7 +146,7 @@ def delete_factura(id_factura):
         # Primero eliminamos pagos asociados
         cursor.execute("DELETE FROM PAGO WHERE id_factura = %s", (id_factura,))
         # Luego la factura
-        cursor.execute("DELETE FROM FACTURA WHERE id_factura = %s", (id_factura,))
+        cursor.execute("DELETE FROM factura WHERE id_factura = %s", (id_factura,))
         conn.commit()
         return True
 
@@ -176,7 +176,7 @@ def create_pago(id_factura, fecha_pago, monto, metodo_pago, referencia=None):
         cursor = conn.cursor()
 
         query = """
-            INSERT INTO PAGO (
+            INSERT INTO pago (
                 id_factura,
                 fecha_pago,
                 monto,
@@ -221,7 +221,7 @@ def read_pagos_por_factura(id_factura):
                 monto,
                 metodo_pago,
                 referencia
-            FROM PAGO
+            FROM pago
             WHERE id_factura = %s
             ORDER BY fecha_pago ASC, id_pago ASC
         """
@@ -251,7 +251,7 @@ def delete_pago(id_pago):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM PAGO WHERE id_pago = %s", (id_pago,))
+        cursor.execute("DELETE FROM pago WHERE id_pago = %s", (id_pago,))
         conn.commit()
         return True
 

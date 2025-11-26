@@ -27,10 +27,10 @@ def read_participaciones(filtro_tipo_intervencion=None, filtro_nombre_empleado=N
             e.nombre AS nombre_empleado,
             t.tipo   AS tipo_tratamiento,
             pac.nombre_completo AS nombre_paciente
-        FROM PARTICIPACION p
-        JOIN EMPLEADO    e   ON p.id_empleado    = e.id_empleado
-        JOIN TRATAMIENTO t   ON p.id_tratamiento = t.id_tratamiento
-        LEFT JOIN PACIENTE pac ON t.id_paciente  = pac.id_paciente
+        FROM participacion p
+        JOIN empleado    e   ON p.id_empleado    = e.id_empleado
+        JOIN tratamiento t   ON p.id_tratamiento = t.id_tratamiento
+        LEFT JOIN paciente pac ON t.id_paciente  = pac.id_paciente
         WHERE 1=1
         """
         valores = []
@@ -76,7 +76,7 @@ def create_participacion(tipo_intervencion, fecha, rol, id_tratamiento, id_emple
 
         # No incluimos id_participacion ya que debe ser AUTO_INCREMENT
         query = """
-        INSERT INTO PARTICIPACION (tipo_intervencion, fecha, rol, id_tratamiento, id_empleado)
+        INSERT INTO participacion (tipo_intervencion, fecha, rol, id_tratamiento, id_empleado)
         VALUES (%s, %s, %s, %s, %s)
         """
         valores = (tipo_intervencion, fecha, rol, id_tratamiento, id_empleado)
@@ -106,7 +106,7 @@ def update_participacion(id_participacion, tipo_intervencion, fecha, rol, id_tra
         cursor = conn.cursor()
 
         query = """
-        UPDATE PARTICIPACION
+        UPDATE participacion
         SET tipo_intervencion = %s, fecha = %s, rol = %s, id_tratamiento = %s, id_empleado = %s
         WHERE id_participacion = %s
         """
@@ -136,7 +136,7 @@ def delete_participacion(id_participacion):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        query = "DELETE FROM PARTICIPACION WHERE id_participacion = %s"
+        query = "DELETE FROM participacion WHERE id_participacion = %s"
         cursor.execute(query, (id_participacion,))
         conn.commit()
         return True

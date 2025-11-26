@@ -24,9 +24,9 @@ def read_tratamientos(filtro_nombre_paciente=None):
             t.id_area_especifica,
             a.nombre AS nombre_area,
             t.id_procedimiento 
-        FROM TRATAMIENTO t
-        LEFT JOIN PACIENTE p ON t.id_paciente = p.id_paciente
-        LEFT JOIN AREA_ESPECIFICA a ON t.id_area_especifica = a.id_area_especifica
+        FROM tratamiento t
+        LEFT JOIN paciente p ON t.id_paciente = p.id_paciente
+        LEFT JOIN area_especifica a ON t.id_area_especifica = a.id_area_especifica
         WHERE 1 = 1
         """
         valores = []

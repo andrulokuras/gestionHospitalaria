@@ -86,7 +86,7 @@ def update_estancia(id_de_estancia, medico_responsable, hora, id_procedimientos)
         cursor = conn.cursor()
 
         query = """
-        UPDATE DE_ESTANCIA
+        UPDATE de_estancia
         SET id_medico_responsable = %s,
             hora = %s,
             id_procedimientos = %s
@@ -111,7 +111,7 @@ def delete_estancia(id_de_estancia):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        query = "DELETE FROM DE_ESTANCIA WHERE id_de_estancia = %s"
+        query = "DELETE FROM de_estancia WHERE id_de_estancia = %s"
         cursor.execute(query, (id_de_estancia,))
         conn.commit()
         return cursor.rowcount > 0

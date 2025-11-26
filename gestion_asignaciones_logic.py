@@ -11,7 +11,7 @@ def create_asignacion(id_empleado, id_area_especifica, asignacion, turno_datetim
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        INSERT INTO ASIGNACION_TURNO (id_empleado, id_area_especifica, asignacion, turno_datetime)
+        INSERT INTO asignacion_turno (id_empleado, id_area_especifica, asignacion, turno_datetime)
         VALUES (%s, %s, %s, %s)
         """
         valores = (id_empleado, id_area_especifica, asignacion, turno_datetime)
@@ -46,9 +46,9 @@ def read_asignaciones(filtro_nombre_medico=None):
             
             E.nombre AS nombre_empleado,
             AE.nombre AS nombre_area
-        FROM ASIGNACION_TURNO AT
-        LEFT JOIN EMPLEADO E ON AT.id_empleado = E.id_empleado
-        LEFT JOIN AREA_ESPECIFICA AE ON AT.id_area_especifica = AE.id_area_especifica
+        FROM asignacion_turno AT
+        LEFT JOIN empleado E ON AT.id_empleado = E.id_empleado
+        LEFT JOIN area_especifica AE ON AT.id_area_especifica = AE.id_area_especifica
         WHERE 1=1
         """
         valores = []
@@ -79,7 +79,7 @@ def update_asignacion(id_asignacion, id_empleado, id_area_especifica, asignacion
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
-        UPDATE ASIGNACION_TURNO 
+        UPDATE asignacion_turno 
         SET id_empleado = %s, id_area_especifica = %s, asignacion = %s, turno_datetime = %s
         WHERE id_asignacion = %s
         """
@@ -100,7 +100,7 @@ def delete_asignacion(id_asignacion):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        query = "DELETE FROM ASIGNACION_TURNO WHERE id_asignacion = %s"
+        query = "DELETE FROM asignacion_turno WHERE id_asignacion = %s"
         cursor.execute(query, (id_asignacion,))
         conn.commit()
         return True

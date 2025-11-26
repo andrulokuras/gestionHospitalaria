@@ -13,7 +13,7 @@ def create_empleado(nombre, puesto, fecha_contratacion, tipo):
         cursor = conn.cursor()
 
         query = """
-        INSERT INTO EMPLEADO (nombre, puesto_especialidad, fecha_contratacion, tipo)
+        INSERT INTO empleado (nombre, puesto_especialidad, fecha_contratacion, tipo)
         VALUES (%s, %s, %s, %s)
         """
         datos_empleado = (nombre, puesto, fecha_contratacion, tipo)
@@ -43,12 +43,12 @@ def read_empleados(id_empleado=None, filtro_nombre=None, filtro_tipo=None):
         cursor = conn.cursor(dictionary=True)
 
         if id_empleado is not None:
-            query = "SELECT * FROM EMPLEADO WHERE id_empleado = %s"
+            query = "SELECT * FROM empleado WHERE id_empleado = %s"
             cursor.execute(query, (id_empleado,))
             return cursor.fetchone()
 
         # Listado general con filtros
-        query = "SELECT * FROM EMPLEADO WHERE 1=1"
+        query = "SELECT * FROM empleado WHERE 1=1"
         valores = []
 
         if filtro_nombre:
@@ -85,7 +85,7 @@ def update_empleado(id_empleado, nombre, puesto, fecha_contratacion, tipo):
         cursor = conn.cursor()
 
         query = """
-        UPDATE EMPLEADO
+        UPDATE empleado
         SET nombre = %s,
             puesto_especialidad = %s,
             fecha_contratacion = %s,
@@ -116,7 +116,7 @@ def delete_empleado(id_empleado):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        query = "DELETE FROM EMPLEADO WHERE id_empleado = %s"
+        query = "DELETE FROM empleado WHERE id_empleado = %s"
         cursor.execute(query, (id_empleado,))
         conn.commit()
         return cursor.rowcount > 0

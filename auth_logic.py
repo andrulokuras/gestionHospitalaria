@@ -13,7 +13,7 @@ def validar_login(username, password):
         cursor = conn.cursor(dictionary=True)
 
         query = """
-        SELECT * FROM USUARIO
+        SELECT * FROM usuario
         WHERE username = %s AND password = %s
         """
         cursor.execute(query, (username, password))
@@ -40,7 +40,7 @@ def crear_usuario(username, password, rol, id_empleado=None):
         cursor = conn.cursor()
 
         query = """
-        INSERT INTO USUARIO (username, password, rol, id_empleado)
+        INSERT INTO usuario (username, password, rol, id_empleado)
         VALUES (%s, %s, %s, %s)
         """
         cursor.execute(query, (username, password, rol, id_empleado))

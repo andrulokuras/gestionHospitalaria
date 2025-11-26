@@ -12,7 +12,7 @@ def create_hospitalizacion(fecha_ingreso, fecha_egreso, motivo, habitacion, id_p
         cursor = conn.cursor()
 
         query = """
-        INSERT INTO HOSPITALIZACIONES
+        INSERT INTO hospitalizaciones
         (fecha_ingreso, fecha_egreso, motivo_ingreso, habitacion, id_paciente, id_de_estancia, id_area_especifica)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
@@ -45,12 +45,12 @@ def read_hospitalizaciones(filtro_nombre=None):
             P.nombre_completo AS nombre_paciente,
             A.nombre AS nombre_area,
             E.id_de_estancia
-        FROM HOSPITALIZACIONES H
-        LEFT JOIN PACIENTE P
+        FROM hospitalizaciones H
+        LEFT JOIN paciente P
             ON H.id_paciente = P.id_paciente
-        LEFT JOIN AREA_ESPECIFICA A
+        LEFT JOIN area_especifica A
             ON H.id_area_especifica = A.id_area_especifica
-        LEFT JOIN DE_ESTANCIA E
+        LEFT JOIN de_estancia E
             ON H.id_de_estancia = E.id_de_estancia
         WHERE 1 = 1
         """
@@ -87,7 +87,7 @@ def update_hospitalizacion(id_hosp, fecha_ingreso, fecha_egreso, motivo, habitac
         cursor = conn.cursor()
 
         query = """
-        UPDATE HOSPITALIZACIONES
+        UPDATE hospitalizaciones
         SET fecha_ingreso = %s,
             fecha_egreso = %s,
             motivo_ingreso = %s,
@@ -119,7 +119,7 @@ def delete_hospitalizacion(id_hosp):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM HOSPITALIZACIONES WHERE id_hospitalizaciones = %s", (id_hosp,))
+        cursor.execute("DELETE FROM hospitalizaciones WHERE id_hospitalizaciones = %s", (id_hosp,))
         conn.commit()
         return cursor.rowcount > 0
 

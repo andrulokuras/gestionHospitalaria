@@ -13,7 +13,7 @@ def create_usuario(username, password, rol, id_empleado=None):
         cursor = conn.cursor()
 
         query = """
-        INSERT INTO USUARIO (username, password, rol, id_empleado)
+        INSERT INTO usuario (username, password, rol, id_empleado)
         VALUES (%s, %s, %s, %s)
         """
         cursor.execute(query, (username, password, rol, id_empleado))
@@ -47,8 +47,8 @@ def read_usuarios(filtro_username=None, filtro_rol=None):
             u.rol,
             u.id_empleado,
             e.nombre AS nombre_empleado
-        FROM USUARIO u
-        LEFT JOIN EMPLEADO e ON u.id_empleado = e.id_empleado
+        FROM usuario u
+        LEFT JOIN empleado e ON u.id_empleado = e.id_empleado
         WHERE 1=1
         """
         valores = []
@@ -86,7 +86,7 @@ def update_usuario(id_usuario, username, password, rol, id_empleado=None):
         cursor = conn.cursor()
 
         query = """
-        UPDATE USUARIO
+        UPDATE usuario
         SET username = %s,
             password = %s,
             rol = %s,
@@ -116,7 +116,7 @@ def delete_usuario(id_usuario):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        query = "DELETE FROM USUARIO WHERE id_usuario = %s"
+        query = "DELETE FROM usuario WHERE id_usuario = %s"
         cursor.execute(query, (id_usuario,))
         conn.commit()
         return True
