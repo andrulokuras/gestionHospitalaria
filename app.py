@@ -12,6 +12,7 @@ from gestion_participaciones_logic import create_participacion, read_participaci
 from gestion_inventario_logic import create_articulo, read_inventario,update_articulo, delete_articulo
 from auth_logic import validar_login
 from functools import wraps
+from gestion_hospitalizaciones_logic import ( create_hospitalizacion, read_hospitalizaciones, update_hospitalizacion, delete_hospitalizacion )
 from gestion_facturas_logic import (
     create_factura,
     read_facturas,
@@ -110,7 +111,7 @@ def index():
     flash("Rol no reconocido, inicia sesión de nuevo.", "danger")
     return redirect(url_for('login'))
 
-
+# LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -656,8 +657,6 @@ def gestion_estancias():
 
 
 # HOSPITALIZACIONES
-
-from gestion_hospitalizaciones_logic import ( create_hospitalizacion, read_hospitalizaciones, update_hospitalizacion, delete_hospitalizacion )
 @app.route('/hospitalizaciones', methods=['GET', 'POST'])
 @requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
 def gestion_hospitalizaciones():
@@ -756,8 +755,7 @@ def gestion_hospitalizaciones():
     )
 
 
-#participaciones
-
+# GESTIÓN DE PARTICIPACIONES
 @app.route('/participaciones', methods=['GET', 'POST'])
 def gestion_participaciones():
     if request.method == 'POST':
