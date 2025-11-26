@@ -31,6 +31,10 @@ from gestion_reportes_logic import (
     obtener_estadisticas_servicios,
     obtener_resumen_administrativo,
 )
+from gestion_usuarios_logic import (
+    create_usuario, read_usuarios, update_usuario, delete_usuario
+)
+
 
 
 
@@ -1394,6 +1398,96 @@ def reportes():
         resumen_admin=resumen_admin,
         total_hospitalizados=total_hospitalizados,
     )
+
+# GESTIÓN DE USUARIOS (solo admin)
+@app.route('/usuarios', methods=['GET', 'POST'])
+@requiere_roles('admin')
+def gestion_usuarios():
+    if request.method == 'POST':
+        # CREAR
+        if 'create_usuario' in request.form:
+            try:
+                username = request.form['username']
+                password = request.form['password']
+                rol = request.form['rol']
+                id_empleado = request.form.get('id_empleado') or None
+
+                if id_empleado == "":
+                    id_empleado = None
+
+                resultado = create_usuario(username, password, rol, id_empleado)
+
+                if resultado is True:
+                    flash('Usuario creado con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al crear usuario: {resultado}', 'danger')
+
+            except Exception as e:
+                flash(f'Error de datos al crear usuario: {e}', 'danger')
+
+        # ACTUALIZAR
+        elif 'update_usuario' in request.form:
+            try:
+                id_usuario = request.form['id_usuario_actualizar']
+                username = request.form['username_edit']
+                password = request.form['password_edit']
+                rol = request.form['rol_edit']
+                id_empleado = request.form.get('id_empleado_edit') or None
+
+                if id_empleado == "":
+                    id_empleado = None
+
+                resultado = update_usuario(
+                    id_usuario, username, password, rol, id_empleado
+                )
+
+                if resultado is True:
+                    flash('Usuario actualizado con éxito.', 'success')
+                else:
+                    flash(f'Error de BD al actualizar usuario: {resultado}', 'danger')
+
+            except Exception as e:
+                flash(f'Error de datos al actualizar usuario: {e}', 'danger')
+
+        # ELIMINAR
+        elif 'delete_usuario' in request.form:
+            try:
+                id_usuario = request.form['id_usuario_eliminar']
+                resultado = delete_usuario(id_usuario)
+
+                if resultado is True:
+                    flash(f'Usuario ID {id_usuario} eliminado.', 'success')
+                else:
+                    flash(f'Error de BD al eliminar usuario: {resultado}', 'danger')
+
+            except Exception as e:
+                flash(f'Error de eliminación de usuario: {e}', 'danger')
+
+        return redirect(url_for('gestion_usuarios'))
+
+    # GET: filtros
+    filtro_username = request.args.get('buscar_username', '').strip()
+    filtro_rol = request.args.get('buscar_rol', '').strip()
+
+    usuarios = read_usuarios(
+        filtro_username=filtro_username or None,
+        filtro_rol=filtro_rol or None
+    )
+
+    # Para el select de empleados (opcional)
+    empleados = read_empleados(
+        filtro_nombre=None,
+        filtro_tipo=None
+    )
+
+    return render_template(
+        'gestion_usuarios.html',
+        usuarios=usuarios,
+        empleados=empleados,
+        filtro_username=filtro_username,
+        filtro_rol=filtro_rol
+    )
+
 
 if __name__ == '__main__':
     app.run(debug=True)
