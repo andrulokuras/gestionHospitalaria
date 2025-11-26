@@ -31,9 +31,9 @@ def create_hospitalizacion(fecha_ingreso, fecha_egreso, motivo, habitacion, id_p
 
 
 # ============================================
-# LEER HOSPITALIZACIONES
+# LEER HOSPITALIZACIONES (con filtro opcional por nombre de paciente)
 # ============================================
-def read_hospitalizaciones():
+def read_hospitalizaciones(filtro_nombre=None):
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -52,10 +52,19 @@ def read_hospitalizaciones():
             ON H.id_area_especifica = A.id_area_especifica
         LEFT JOIN DE_ESTANCIA E
             ON H.id_de_estancia = E.id_de_estancia
-        ORDER BY H.id_hospitalizaciones DESC
+        WHERE 1 = 1
         """
 
-        cursor.execute(query)
+        valores = []
+
+        # Si viene un nombre para filtrar, agregamos condición
+        if filtro_nombre:
+            query += " AND P.nombre_completo LIKE %s"
+            valores.append(f"%{filtro_nombre}%")
+
+        query += " ORDER BY H.id_hospitalizaciones DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
 
     except mysql.connector.Error as err:
@@ -66,7 +75,6 @@ def read_hospitalizaciones():
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
-
 
 
 # ============================================

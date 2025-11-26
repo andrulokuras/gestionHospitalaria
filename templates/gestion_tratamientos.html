@@ -87,6 +87,29 @@
     Tratamientos Registrados
   </div>
   <div class="card-body table-responsive">
+        <!-- Filtro por nombre de paciente -->
+    <form method="GET" action="{{ url_for('gestion_tratamientos') }}" class="row g-2 mb-3">
+      <div class="col-md-8">
+        <label class="form-label">Buscar por nombre de paciente</label>
+        <input
+          type="text"
+          name="buscar_paciente"
+          class="form-control"
+          placeholder="Ej. Juan Pérez"
+          value="{{ filtro_nombre or '' }}"
+        >
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-secondary w-100">
+          Buscar
+        </button>
+      </div>
+    </form>
+
+    <table class="table table-striped table-hover">
+      <thead>
+      ...
+
     <table class="table table-striped table-hover">
       <thead>
         <tr>

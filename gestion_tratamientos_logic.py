@@ -5,36 +5,48 @@ from db_connection import DB_CONFIG
 # -----------------------------------------
 # LEER TRATAMIENTOS
 # -----------------------------------------
-def read_tratamientos():
+def read_tratamientos(filtro_nombre_paciente=None):
+    conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
 
+        # --- CORRECCIÓN AQUÍ ---
+        # Cambié 't.id_de_tratamiento' por 't.id_procedimiento'
         query = """
-            SELECT t.id_tratamiento,
-                   t.id_paciente,
-                   t.tipo,
-                   t.fecha_inicio,
-                   t.estado_actual,
-                   t.id_area_especifica,
-                   t.id_procedimiento,
-                   p.nombre_completo AS nombre_paciente,
-                   a.nombre AS nombre_area
-            FROM tratamiento t
-            LEFT JOIN paciente p ON p.id_paciente = t.id_paciente
-            LEFT JOIN area_especifica a ON a.id_area_especifica = t.id_area_especifica
-            ORDER BY t.id_tratamiento DESC;
+        SELECT 
+            t.id_tratamiento,
+            t.id_paciente,
+            p.nombre_completo AS nombre_paciente,
+            t.tipo,
+            t.fecha_inicio,
+            t.estado_actual,
+            t.id_area_especifica,
+            a.nombre AS nombre_area,
+            t.id_procedimiento 
+        FROM TRATAMIENTO t
+        LEFT JOIN PACIENTE p ON t.id_paciente = p.id_paciente
+        LEFT JOIN AREA_ESPECIFICA a ON t.id_area_especifica = a.id_area_especifica
+        WHERE 1 = 1
         """
+        valores = []
 
-        cursor.execute(query)
-        result = cursor.fetchall()
+        if filtro_nombre_paciente:
+            query += " AND p.nombre_completo LIKE %s"
+            valores.append(f"%{filtro_nombre_paciente}%")
 
-        cursor.close()
-        conn.close()
-        return result
+        query += " ORDER BY t.id_tratamiento DESC"
 
+        cursor.execute(query, tuple(valores))
+        return cursor.fetchall()
     except mysql.connector.Error as err:
-        return str(err)
+        # Revisa tu terminal/consola, aquí debe estar apareciendo el error
+        print(f"Error al leer tratamientos: {err}")
+        return []
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
 
 # -----------------------------------------

@@ -83,7 +83,24 @@
 <!-- TABLA LISTA HOSPITALIZACIONES -->
 <!-- =========================== -->
 <h3 class="mb-3">Historial de Hospitalizaciones</h3>
-
+<!-- Filtro por nombre de paciente -->
+<form method="GET" action="{{ url_for('gestion_hospitalizaciones') }}" class="row g-2 mb-3">
+    <div class="col-md-8">
+        <label class="form-label">Buscar por nombre de paciente</label>
+        <input
+            type="text"
+            name="buscar_nombre"
+            class="form-control"
+            placeholder="Ej. Juan Pérez"
+            value="{{ filtro_nombre or '' }}"
+        >
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-secondary w-100">
+            Buscar
+        </button>
+    </div>
+</form>
 <div class="table-responsive">
 <table class="table table-hover table-striped">
     <thead class="table-dark">

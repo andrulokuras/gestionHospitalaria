@@ -89,6 +89,24 @@
         <h2>Listado de Estancias Registradas</h2>
     </div>
 </div>
+<!-- Filtro por nombre de médico -->
+<form method="GET" action="{{ url_for('gestion_estancias') }}" class="row g-2 mb-3">
+    <div class="col-md-8">
+        <label class="form-label">Buscar por nombre de médico</label>
+        <input
+            type="text"
+            name="buscar_medico"
+            class="form-control"
+            placeholder="Ej. Dr. Juan Pérez"
+            value="{{ filtro_medico or '' }}"
+        >
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-secondary w-100">
+            Buscar
+        </button>
+    </div>
+</form>
 
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
@@ -105,9 +123,10 @@
             {% for estancia in estancias %}
             <tr>
                 <th scope="row">{{ estancia.id_de_estancia }}</th>
-                <td>{{ estancia.medico_responsable }}</td>
+                <td>{{ estancia.id_medico_responsable }} - {{ estancia.nombre_medico }}</td>
                 <td>{{ estancia.hora }}</td>
-                <td>{{ estancia.id_procedimientos }}</td>
+                <td>{{ estancia.id_procedimientos }} - {{ estancia.tipo_procedimiento }}</td>
+
                 <td>
                     <div class="btn-group" role="group">
                         <!-- Botón Editar -->

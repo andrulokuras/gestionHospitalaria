@@ -84,6 +84,34 @@
 
 <!-- TABLA DE PACIENTES -->
 <h3 class="mt-5 mb-3">Lista de Pacientes Registrados</h3>
+<form method="GET" action="{{ url_for('gestion_pacientes') }}" class="row g-2 mb-3">
+  <div class="col-md-5">
+    <label class="form-label">Buscar por nombre</label>
+    <input
+      type="text"
+      name="buscar_nombre"
+      class="form-control"
+      placeholder="Ej. Juan Pérez"
+      value="{{ filtro_nombre or '' }}"
+    >
+  </div>
+
+  <div class="col-md-5">
+    <label class="form-label">Filtrar por seguro médico</label>
+    <input
+      type="text"
+      name="buscar_seguro"
+      class="form-control"
+      placeholder="Ej. IMSS, GNP, Particular"
+      value="{{ filtro_seguro or '' }}"
+    >
+  </div>
+
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-secondary w-100 me-2">Filtrar</button>
+  </div>
+</form>
+
 <div class="table-responsive">
     <table class="table table-striped table-hover small">
         <thead class="table-dark">

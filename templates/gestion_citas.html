@@ -91,6 +91,24 @@
     Calendario de Citas
   </div>
   <div class="card-body table-responsive">
+<form method="GET" action="{{ url_for('gestion_citas') }}" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <label class="form-label">Filtrar por estado</label>
+    <select name="filtro_estado" class="form-select">
+      <option value="" {% if not filtro_estado %}selected{% endif %}>Todas</option>
+      <option value="Solicitada" {% if filtro_estado == 'Solicitada' %}selected{% endif %}>Solicitada</option>
+      <option value="Confirmada" {% if filtro_estado == 'Confirmada' %}selected{% endif %}>Confirmada</option>
+      <option value="Cancelada" {% if filtro_estado == 'Cancelada' %}selected{% endif %}>Cancelada</option>
+      <option value="Completada" {% if filtro_estado == 'Completada' %}selected{% endif %}>Completada</option>
+      <option value="Ausente" {% if filtro_estado == 'Ausente' %}selected{% endif %}>Ausente</option>
+    </select>
+  </div>
+
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-secondary w-100">Aplicar</button>
+  </div>
+</form>
+
     <table class="table table-striped table-hover align-middle">
 
       <thead>

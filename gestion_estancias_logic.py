@@ -29,10 +29,11 @@ def create_estancia(medico_responsable, hora, id_procedimientos):
 
 
 # --- 2. LEER ESTANCIAS ---
-def read_estancias():
+def read_estancias(filtro_medico=None):
     """
     Obtiene todas las estancias registradas.
-    Alias 'medico_responsable' para que coincida con el template.
+    Trae también el nombre del médico y el tipo de procedimiento.
+    Puede filtrar opcionalmente por nombre de médico.
     """
     conn = None
     try:
@@ -40,16 +41,33 @@ def read_estancias():
         cursor = conn.cursor(dictionary=True)
 
         query = """
-        SELECT 
-            id_de_estancia,
-            id_medico_responsable AS medico_responsable,
-            hora,
-            id_procedimientos
-        FROM DE_ESTANCIA
-        ORDER BY id_de_estancia DESC
+        SELECT
+            de.id_de_estancia,
+            de.id_medico_responsable,
+            emp.nombre AS nombre_medico,
+            de.hora,
+            de.id_procedimientos,
+            proc.tipo AS tipo_procedimiento
+        FROM de_estancia de
+        LEFT JOIN empleado emp
+            ON de.id_medico_responsable = emp.id_empleado
+        LEFT JOIN procedimientos proc
+            ON de.id_procedimientos = proc.id_procedimiento
+        WHERE 1 = 1
         """
-        cursor.execute(query)
+
+        valores = []
+
+        # Filtro por nombre de médico (LIKE)
+        if filtro_medico:
+            query += " AND emp.nombre LIKE %s"
+            valores.append(f"%{filtro_medico}%")
+
+        query += " ORDER BY de.id_de_estancia DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
+
     except mysql.connector.Error as err:
         print(f"Error al leer estancias: {err}")
         return []
@@ -57,6 +75,7 @@ def read_estancias():
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 
 # --- 3. ACTUALIZAR ESTANCIA ---

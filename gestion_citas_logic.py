@@ -60,7 +60,7 @@ def create_cita(id_paciente, id_empleado, id_area_especifica, fecha_hora_inicio,
 # -----------------------------------------------------------------------------
 # 2. READ
 # -----------------------------------------------------------------------------
-def read_citas():
+def read_citas(filtro_estado=None):
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -83,9 +83,19 @@ def read_citas():
         LEFT JOIN paciente p ON c.id_paciente = p.id_paciente
         LEFT JOIN empleado e ON c.id_empleado = e.id_empleado
         LEFT JOIN area_especifica a ON c.id_area_especifica = a.id_area_especifica
-        ORDER BY c.fecha_hora_inicio ASC
+        WHERE 1=1
         """
-        cursor.execute(query)
+
+        valores = []
+
+        # Si viene un estado (y no es "Todas"), filtramos
+        if filtro_estado and filtro_estado.lower() != 'todas':
+            query += " AND c.estado = %s"
+            valores.append(filtro_estado)
+
+        query += " ORDER BY c.fecha_hora_inicio DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
 
     except mysql.connector.Error as err:

@@ -5,6 +5,25 @@
 <h2>Historial Clínico - Selección de Paciente</h2>
 <div class="card mt-3">
     <div class="card-body">
+                <!-- Filtro de búsqueda por nombre -->
+        <form method="GET" action="{{ url_for('lista_historial') }}" class="row g-2 mb-3">
+            <div class="col-md-8">
+                <label class="form-label">Buscar paciente por nombre</label>
+                <input
+                    type="text"
+                    name="buscar_nombre"
+                    class="form-control"
+                    placeholder="Ej. Juan Pérez"
+                    value="{{ filtro_nombre or '' }}"
+                >
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-secondary w-100">
+                    Buscar
+                </button>
+            </div>
+        </form>
+
         <table class="table table-hover">
             <thead>
                 <tr>

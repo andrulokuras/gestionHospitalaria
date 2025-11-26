@@ -249,8 +249,22 @@ def gestion_pacientes():
 
         return redirect(url_for('gestion_pacientes'))
 
-    pacientes = read_pacientes()
-    return render_template('gestion_pacientes.html', pacientes=pacientes)
+    # Obtener filtros desde la barra de búsqueda (query string)
+    filtro_nombre = request.args.get('buscar_nombre', '').strip()
+    filtro_seguro = request.args.get('buscar_seguro', '').strip()
+
+    pacientes = read_pacientes(
+        filtro_nombre=filtro_nombre or None,
+        filtro_seguro=filtro_seguro or None
+    )
+
+    return render_template(
+        'gestion_pacientes.html',
+        pacientes=pacientes,
+        filtro_nombre=filtro_nombre,
+        filtro_seguro=filtro_seguro
+    )
+
 
 
 # GESTIÓN DE PROCEDIMIENTOS
@@ -454,9 +468,19 @@ def gestion_tratamientos():
 
         return redirect(url_for('gestion_tratamientos'))
 
-    # GET: mostrar tabla
-    tratamientos = read_tratamientos()
-    return render_template("gestion_tratamientos.html", tratamientos=tratamientos)
+    # GET: mostrar tabla con filtro opcional por nombre de paciente
+    filtro_nombre = request.args.get('buscar_paciente', '').strip()
+
+    tratamientos = read_tratamientos(
+        filtro_nombre_paciente=filtro_nombre or None
+    )
+
+    return render_template(
+        'gestion_tratamientos.html',
+        tratamientos=tratamientos,
+        filtro_nombre=filtro_nombre
+    )
+
 
 
 # GESTIÓN DE ESTANCIAS
@@ -513,9 +537,19 @@ def gestion_estancias():
 
         return redirect(url_for('gestion_estancias'))
 
-    # GET → mostrar tabla
-    estancias = read_estancias()
-    return render_template('estancias.html', estancias=estancias)
+    # GET → mostrar tabla con filtro opcional por nombre de médico
+    filtro_medico = request.args.get('buscar_medico', '').strip()
+
+    estancias = read_estancias(
+        filtro_medico=filtro_medico or None
+    )
+
+    return render_template(
+        'estancias.html',
+        estancias=estancias,
+        filtro_medico=filtro_medico
+    )
+
 
 # HOSPITALIZACIONES
 from gestion_hospitalizaciones_logic import (
@@ -573,8 +607,19 @@ def gestion_hospitalizaciones():
 
         return redirect(url_for('gestion_hospitalizaciones'))
 
-    hospitalizaciones = read_hospitalizaciones()
-    return render_template("hospitalizaciones.html", hospitalizaciones=hospitalizaciones)
+    # GET: mostrar lista con filtro opcional por nombre de paciente
+    filtro_nombre = request.args.get('buscar_nombre', '').strip()
+
+    hospitalizaciones = read_hospitalizaciones(
+        filtro_nombre=filtro_nombre or None
+    )
+
+    return render_template(
+        "hospitalizaciones.html",
+        hospitalizaciones=hospitalizaciones,
+        filtro_nombre=filtro_nombre
+    )
+
 
 @app.route('/participaciones', methods=['GET', 'POST'])
 def gestion_participaciones():
@@ -800,18 +845,39 @@ def gestion_citas():
             
         return redirect(url_for('gestion_citas'))
 
-    # GET: Cargar la tabla
-    citas = read_citas()
-    return render_template('gestion_citas.html', citas=citas)
+    # GET: Cargar la tabla con filtros
+    filtro_estado = request.args.get('filtro_estado', '').strip()
+
+    citas = read_citas(
+        filtro_estado=filtro_estado or None
+    )
+
+    return render_template(
+        'gestion_citas.html',
+        citas=citas,
+        filtro_estado=filtro_estado
+    )
+
+
 
 # VISTA MAESTRA: LISTA DE PACIENTES PARA HISTORIAL
 @app.route('/historial')
 @requiere_roles('admin', 'medico', 'enfermera')
 def lista_historial():
-    # Reutilizamos la lógica de leer pacientes
-    pacientes = read_pacientes()
-    return render_template('lista_historial.html', pacientes=pacientes)
+    # Tomamos el filtro que venga en la barra de búsqueda (GET)
+    filtro_nombre = request.args.get('buscar_nombre', '').strip()
 
+    # Si ya implementaste read_pacientes con filtros, reusamos ese parámetro
+    # Si no, puedes ajustar la función read_pacientes para aceptarlo
+    pacientes = read_pacientes(
+        filtro_nombre=filtro_nombre or None  # si viene vacío, no filtra
+    )
+
+    return render_template(
+        'lista_historial.html',
+        pacientes=pacientes,
+        filtro_nombre=filtro_nombre
+    )
 # VISTA DETALLE: EL EXPEDIENTE DEL PACIENTE
 @app.route('/historial/<int:id_paciente>')
 @requiere_roles('admin', 'medico', 'enfermera')
@@ -823,6 +889,7 @@ def ver_expediente(id_paciente):
         return redirect(url_for('lista_historial'))
         
     return render_template('detalle_expediente.html', data=datos)
+
 
 # INVENTARIO
 @app.route('/inventario', methods=['GET', 'POST'])

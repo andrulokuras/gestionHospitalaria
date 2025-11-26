@@ -28,22 +28,38 @@ def create_paciente(nombre_completo, fecha_nacimiento, genero, domicilio, telefo
 
 # --- 2. LEER (READ) ---
 # Esta función es la que estaba causando el ImportError
-def read_pacientes():
+def read_pacientes(filtro_nombre=None, filtro_seguro=None):
     conn = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor(dictionary=True) 
-        query = "SELECT * FROM PACIENTE ORDER BY id_paciente DESC"
-        cursor.execute(query)
+        cursor = conn.cursor(dictionary=True)
+
+        # Base de la consulta
+        query = "SELECT * FROM PACIENTE WHERE 1=1"
+        valores = []
+
+        # Filtro por nombre (LIKE)
+        if filtro_nombre:
+            query += " AND nombre_completo LIKE %s"
+            valores.append(f"%{filtro_nombre}%")
+
+        # Filtro por seguro médico (LIKE)
+        if filtro_seguro:
+            query += " AND seguro_medico LIKE %s"
+            valores.append(f"%{filtro_seguro}%")
+
+        query += " ORDER BY id_paciente DESC"
+
+        cursor.execute(query, tuple(valores))
         return cursor.fetchall()
     except mysql.connector.Error as err:
-        # En caso de error, devuelve una lista vacía para evitar fallos
         print(f"Error de BD al leer pacientes: {err}")
         return []
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 # --- 3. ACTUALIZAR (UPDATE) ---
 # Usamos nombre_completo y domicilio
