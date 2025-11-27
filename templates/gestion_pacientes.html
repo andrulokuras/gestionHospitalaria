@@ -58,14 +58,14 @@
                 <!-- Teléfono (solo números) -->
                 <div class="col-md-3">
                     <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                    <input type="number"
-                           name="telefono"
+                    <input type="text"
+                        class="form-control"
+                        id="telefono"
+                        name="telefono"
                         maxlength="12"
-                           class="form-control"
-                           data-required="true"
-                           min="0"
-                           step="1"
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        pattern="[0-9]{10,12}"
+                        placeholder="Ej: 4421234567"
+                        data-required="true">
                 </div>
 
                 <!-- Seguro médico -->
