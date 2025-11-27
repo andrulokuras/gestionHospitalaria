@@ -8,6 +8,8 @@ from db_connection import DB_CONFIG
 def create_paciente(nombre_completo, fecha_nacimiento, genero, domicilio, telefono, seguro_medico):
     conn = None
     try:
+        telefono = "".join(c for c in str(telefono) if c.isdigit())
+        telefono = telefono[:12]
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
