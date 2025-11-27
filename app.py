@@ -1,4 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
+import csv
+import io
+
 
 
 # 1. IMPORTACIONES DE LÓGICA (TODAS AL PRINCIPIO)
@@ -1398,6 +1401,331 @@ def reportes():
         resumen_admin=resumen_admin,
         total_hospitalizados=total_hospitalizados,
     )
+
+# ============================
+# DESCARGAS CSV DE REPORTES
+# ============================
+@app.route('/reportes/ocupacion_por_area_csv')
+@requiere_roles('admin', 'medico', 'administrativo')
+def descargar_ocupacion_por_area_csv():
+    """
+    Genera y devuelve un archivo CSV con el mismo contenido
+    del reporte de ocupación por área que se muestra en pantalla.
+    """
+    datos = obtener_resumen_ocupacion()
+
+    # Si hubo error, obtener_resumen_ocupacion devuelve un string
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        respuesta = make_response(output.getvalue())
+        respuesta.headers["Content-Disposition"] = "attachment; filename=ocupacion_por_area_error.csv"
+        respuesta.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return respuesta
+
+    # Encabezados del CSV (de acuerdo a lo que regresa obtener_resumen_ocupacion)
+    encabezados = [
+        "ID área",
+        "Nombre área",
+        "Tipo área",
+        "Pacientes hospitalizados",
+        "Ingreso más antiguo",
+    ]
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Escribir encabezados
+    writer.writerow(encabezados)
+
+    # Escribir filas
+    for fila in datos:
+        writer.writerow([
+            fila.get("id_area_especifica", ""),
+            fila.get("nombre_area", ""),
+            fila.get("tipo_area", ""),
+            fila.get("pacientes_hospitalizados", 0),
+            fila.get("ingreso_mas_antiguo", ""),
+        ])
+
+    respuesta = make_response(output.getvalue())
+    respuesta.headers["Content-Disposition"] = "attachment; filename=ocupacion_por_area.csv"
+    respuesta.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return respuesta
+
+@app.route('/reportes/resumen_clinico_csv')
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
+def descargar_resumen_clinico_csv():
+    """
+    CSV con los informes clínicos generales (1 fila con totales).
+    """
+    datos = obtener_resumen_clinico()
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=resumen_clinico_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    # Encabezados y una sola fila
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Total pacientes",
+        "Pacientes hospitalizados",
+        "Total tratamientos",
+        "Total procedimientos",
+    ])
+    writer.writerow([
+        datos.get("total_pacientes", 0),
+        datos.get("pacientes_hospitalizados", 0),
+        datos.get("total_tratamientos", 0),
+        datos.get("total_procedimientos", 0),
+    ])
+
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=resumen_clinico.csv"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
+
+
+@app.route('/reportes/productividad_medica_csv')
+@requiere_roles('admin', 'medico', 'administrativo')
+def descargar_productividad_medica_csv():
+    """
+    CSV con la productividad médica (Top 10), respetando el filtro por nombre.
+    """
+    filtro_medico = request.args.get('medico', '').strip()
+    datos = obtener_productividad_medica(filtro_medico)
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=productividad_medica_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "ID médico",
+        "Nombre médico",
+        "Total citas",
+        "Citas completadas",
+        "Total participaciones",
+    ])
+
+    for fila in datos:
+        writer.writerow([
+            fila.get("id_empleado", ""),
+            fila.get("nombre_medico", ""),
+            fila.get("total_citas", 0),
+            fila.get("citas_completadas", 0),
+            fila.get("total_participaciones", 0),
+        ])
+
+    resp = make_response(output.getvalue())
+    filename = "productividad_medica.csv"
+    if filtro_medico:
+        filename = f"productividad_medica_{filtro_medico}.csv"
+
+    resp.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
+
+
+@app.route('/reportes/tratamientos_por_tipo_csv')
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
+def descargar_tratamientos_por_tipo_csv():
+    """
+    CSV con la tabla de tratamientos por tipo.
+    """
+    datos = obtener_estadisticas_servicios()
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=tratamientos_por_tipo_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    lista = datos.get("tratamientos_por_tipo", [])
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Tipo de tratamiento", "Total"])
+
+    for t in lista:
+        writer.writerow([
+            t.get("tipo", ""),
+            t.get("total", 0),
+        ])
+
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=tratamientos_por_tipo.csv"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
+
+
+@app.route('/reportes/procedimientos_por_tipo_csv')
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
+def descargar_procedimientos_por_tipo_csv():
+    """
+    CSV con la tabla de procedimientos por tipo.
+    """
+    datos = obtener_estadisticas_servicios()
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=procedimientos_por_tipo_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    lista = datos.get("procedimientos_por_tipo", [])
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Tipo de procedimiento", "Total"])
+
+    for p in lista:
+        writer.writerow([
+            p.get("tipo", ""),
+            p.get("total", 0),
+        ])
+
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=procedimientos_por_tipo.csv"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
+
+
+@app.route('/reportes/hospitalizaciones_por_mes_csv')
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
+def descargar_hospitalizaciones_por_mes_csv():
+    """
+    CSV con la tabla de hospitalizaciones por mes.
+    """
+    datos = obtener_estadisticas_servicios()
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=hospitalizaciones_por_mes_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    lista = datos.get("hospitalizaciones_por_mes", [])
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Mes", "Total hospitalizaciones"])
+
+    for h in lista:
+        writer.writerow([
+            h.get("mes", ""),
+            h.get("total", 0),
+        ])
+
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=hospitalizaciones_por_mes.csv"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
+
+
+@app.route('/reportes/resumen_administrativo_csv')
+@requiere_roles('admin', 'administrativo')
+def descargar_resumen_administrativo_csv():
+    """
+    CSV con el resumen de montos (facturado, pagado, pendiente).
+    """
+    datos = obtener_resumen_administrativo()
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=resumen_administrativo_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    resumen = datos.get("resumen_montos", {})
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Total facturado", "Total pagado", "Total pendiente"])
+    writer.writerow([
+        resumen.get("total_facturado", 0),
+        resumen.get("total_pagado", 0),
+        resumen.get("total_pendiente", 0),
+    ])
+
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=resumen_administrativo.csv"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
+
+
+@app.route('/reportes/facturas_por_estado_csv')
+@requiere_roles('admin', 'administrativo')
+def descargar_facturas_por_estado_csv():
+    """
+    CSV con la tabla de facturas por estado.
+    """
+    datos = obtener_resumen_administrativo()
+
+    if isinstance(datos, str):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Error"])
+        writer.writerow([datos])
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Disposition"] = "attachment; filename=facturas_por_estado_error.csv"
+        resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return resp
+
+    lista = datos.get("facturas_por_estado", [])
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Estado", "Cantidad"])
+
+    for fe in lista:
+        writer.writerow([
+            fe.get("estado", ""),
+            fe.get("total", 0),
+        ])
+
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=facturas_por_estado.csv"
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return resp
 
 # GESTIÓN DE USUARIOS (solo admin)
 @app.route('/usuarios', methods=['GET', 'POST'])

@@ -22,7 +22,12 @@
     <div id="collapseClinico" class="accordion-collapse collapse show"
          aria-labelledby="headingClinico" data-bs-parent="#accordionReportes">
       <div class="accordion-body">
-
+        <div class="d-flex justify-content-end mb-2">
+            <a href="{{ url_for('descargar_resumen_clinico_csv') }}"
+               class="btn btn-sm btn-outline-secondary">
+                Descargar CSV
+            </a>
+        </div>
         <div class="row">
             <div class="col-md-3 mb-3">
                 <div class="card border-0 shadow-sm">
@@ -86,9 +91,15 @@
             <span class="badge bg-primary">
                 Hospitalizados actuales: {{ total_hospitalizados }}
             </span>
-            <a href="{{ url_for('gestion_areas') }}" class="btn btn-sm btn-outline-primary">
-                Ver todas las áreas
-            </a>
+            <div class="btn-group">
+                <a href="{{ url_for('descargar_ocupacion_por_area_csv') }}" class="btn btn-sm btn-outline-secondary">
+                    Descargar CSV
+                </a>
+                <a href="{{ url_for('gestion_areas') }}" class="btn btn-sm btn-outline-primary">
+                    Ver todas las áreas
+                </a>
+                </a>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -149,6 +160,7 @@
 
         <div class="d-flex justify-content-between align-items-center mb-2">
             <form class="row g-2 align-items-center" method="get" action="{{ url_for('reportes') }}">
+                <!-- lo que ya tienes dentro del form -->
                 <div class="col-auto">
                     <input type="text" name="medico" class="form-control form-control-sm"
                            placeholder="Filtrar por nombre de médico"
@@ -160,10 +172,18 @@
                     </button>
                 </div>
             </form>
-            <a href="{{ url_for('gestion_empleados') }}" class="btn btn-sm btn-outline-primary">
-                Ver detalle de médicos
-            </a>
+
+            <div class="btn-group">
+                <a href="{{ url_for('gestion_empleados') }}" class="btn btn-sm btn-outline-primary">
+                    Ver detalle de médicos
+                </a>
+                <a href="{{ url_for('descargar_productividad_medica_csv', medico=request.args.get('medico', '')) }}"
+                   class="btn btn-sm btn-outline-secondary">
+                    Descargar CSV
+                </a>
+            </div>
         </div>
+
 
         <div class="table-responsive">
             <table class="table table-striped mb-0">
@@ -216,8 +236,14 @@
         <div class="row mb-3">
             <div class="col-md-6 mb-3">
                 <div class="card h-100">
-                    <div class="card-header">
-                        <i class="bi bi-clipboard2-pulse me-1"></i> Tratamientos por tipo
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-clipboard2-pulse me-1"></i> Tratamientos por tipo
+                        </span>
+                        <a href="{{ url_for('descargar_tratamientos_por_tipo_csv') }}"
+                        class="btn btn-sm btn-outline-secondary">
+                            CSV
+                        </a>
                     </div>
                     <div class="card-body p-0">
                         <table class="table table-striped mb-0">
@@ -250,8 +276,14 @@
 
             <div class="col-md-6 mb-3">
                 <div class="card h-100">
-                    <div class="card-header">
-                        <i class="bi bi-activity me-1"></i> Procedimientos por tipo
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-activity me-1"></i> Procedimientos por tipo
+                        </span>
+                        <a href="{{ url_for('descargar_procedimientos_por_tipo_csv') }}"
+                        class="btn btn-sm btn-outline-secondary">
+                            CSV
+                        </a>
                     </div>
                     <div class="card-body p-0">
                         <table class="table table-striped mb-0">
@@ -285,8 +317,14 @@
 
         <!-- Hospitalizaciones por mes -->
         <div class="card mb-0">
-            <div class="card-header">
-                <i class="bi bi-calendar-week me-1"></i> Hospitalizaciones por mes (últimos registros)
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-calendar-week me-1"></i> Hospitalizaciones por mes (últimos registros)
+                </span>
+                <a href="{{ url_for('descargar_hospitalizaciones_por_mes_csv') }}"
+                class="btn btn-sm btn-outline-secondary">
+                    CSV
+                </a>
             </div>
             <div class="card-body p-0">
                 <table class="table table-striped mb-0">
@@ -332,6 +370,16 @@
     <div id="collapseAdministrativo" class="accordion-collapse collapse"
          aria-labelledby="headingAdministrativo" data-bs-parent="#accordionReportes">
       <div class="accordion-body">
+        <div class="d-flex justify-content-end mb-2">
+            <a href="{{ url_for('descargar_resumen_administrativo_csv') }}"
+               class="btn btn-sm btn-outline-secondary me-2">
+                Descargar resumen CSV
+            </a>
+            <a href="{{ url_for('descargar_facturas_por_estado_csv') }}"
+               class="btn btn-sm btn-outline-secondary">
+                Desc. facturas por estado
+            </a>
+        </div>
 
         <div class="row mb-3">
             <div class="col-md-4 mb-2">
