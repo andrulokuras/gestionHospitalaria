@@ -250,11 +250,19 @@ def gestion_pacientes():
                 domicilio = (request.form.get('direccion') or '').strip()
                 telefono = (request.form.get('telefono') or '').strip()
                 seguro_medico = (request.form.get('seguro_medico') or '').strip()
+                telefono = "".join(c for c in telefono if c.isdigit())
 
+                # 🔹 Validar máximo de 12 dígitos
+                if telefono and len(telefono) > 12:
+                    flash('El teléfono no puede tener más de 12 dígitos.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+                
                 # Teléfono opcional pero con longitud mínima si se captura
                 if telefono and len(telefono) < 8:
                     flash('El teléfono debe tener al menos 8 dígitos.', 'danger')
                     return redirect(url_for('gestion_pacientes'))
+
+                
 
                 # ---- LLAMADA A LA LÓGICA ----
                 resultado = create_paciente(
