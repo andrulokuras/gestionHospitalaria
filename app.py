@@ -231,21 +231,48 @@ def gestion_pacientes():
         
         if 'create_paciente' in request.form:
             try:
-                
-                nombre_completo = request.form['nombre'] 
-                fecha_nacimiento = request.form['fecha_nacimiento']
-                genero = request.form['genero']
-                domicilio = request.form['direccion'] 
-                telefono = request.form['telefono']
-                seguro_medico = request.form['seguro_medico']
-                resultado = create_paciente(nombre_completo, fecha_nacimiento, genero, domicilio, telefono, seguro_medico)
+                # ---- VALIDACIONES BACKEND ----
+                nombre_completo = (request.form.get('nombre') or '').strip()
+                if not nombre_completo:
+                    flash('El nombre del paciente es obligatorio.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+
+                fecha_nacimiento = (request.form.get('fecha_nacimiento') or '').strip()
+                if not fecha_nacimiento:
+                    flash('La fecha de nacimiento es obligatoria.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+
+                genero = (request.form.get('genero') or '').strip()
+                if not genero:
+                    flash('El género es obligatorio.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+
+                domicilio = (request.form.get('direccion') or '').strip()
+                telefono = (request.form.get('telefono') or '').strip()
+                seguro_medico = (request.form.get('seguro_medico') or '').strip()
+
+                # Teléfono opcional pero con longitud mínima si se captura
+                if telefono and len(telefono) < 8:
+                    flash('El teléfono debe tener al menos 8 dígitos.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+
+                # ---- LLAMADA A LA LÓGICA ----
+                resultado = create_paciente(
+                    nombre_completo,
+                    fecha_nacimiento,
+                    genero,
+                    domicilio,
+                    telefono,
+                    seguro_medico
+                )
                 
                 if resultado is True:
                     flash('Paciente registrado con éxito.', 'success')
                 else:
                     flash(f'Error de BD al registrar paciente: {resultado}', 'danger')
             except Exception as e:
-                 flash(f'Error de datos al crear paciente: {e}', 'danger')
+                flash(f'Error de datos al crear paciente: {e}', 'danger')
+
 
         elif 'delete_paciente' in request.form:
              try:
@@ -671,32 +698,54 @@ def gestion_hospitalizaciones():
 
         # CREAR
         if 'create' in request.form:
-            # hacer opcionales fecha_egreso y motivo
-            fecha_egreso = request.form.get('fecha_egreso') or None
-            motivo = request.form.get('motivo') or None
+            try:
+                # Fecha ingreso obligatoria
+                fecha_ingreso = (request.form.get('fecha_ingreso') or '').strip()
+                if not fecha_ingreso:
+                    flash('La fecha de ingreso es obligatoria.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
 
-            # valores crudos: "2 - Regina Valenzuela", "3 - Estancia corta", etc.
-            raw_paciente  = request.form.get('id_paciente', '')
-            raw_estancia  = request.form.get('id_estancia', '')
-            raw_area      = request.form.get('id_area', '')
+                # Opcionales
+                fecha_egreso = request.form.get('fecha_egreso') or None
+                motivo = request.form.get('motivo') or None
 
-            id_paciente   = extraer_id(raw_paciente)
-            id_estancia   = extraer_id(raw_estancia)
-            id_area       = extraer_id(raw_area)
+                # valores crudos: "2 - Regina Valenzuela", etc.
+                raw_paciente  = request.form.get('id_paciente', '')
+                raw_estancia  = request.form.get('id_estancia', '')
+                raw_area      = request.form.get('id_area', '')
 
-            result = create_hospitalizacion(
-                request.form['fecha_ingreso'],
-                fecha_egreso,
-                motivo,
-                request.form.get('habitacion'),
-                id_paciente,
-                id_estancia,
-                id_area
-            )
-            if result is True:
-                flash("Hospitalización registrada correctamente!", "success")
-            else:
-                flash(f"Error: {result}", "danger")
+                id_paciente = extraer_id(raw_paciente)
+                id_estancia = extraer_id(raw_estancia)
+                id_area     = extraer_id(raw_area)
+
+                if not id_paciente:
+                    flash('Debe seleccionar un paciente válido.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
+                if not id_estancia:
+                    flash('Debe seleccionar una estancia válida.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
+                if not id_area:
+                    flash('Debe seleccionar un área válida.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
+
+                habitacion = (request.form.get('habitacion') or '').strip() or None
+
+                result = create_hospitalizacion(
+                    fecha_ingreso,
+                    fecha_egreso,
+                    motivo,
+                    habitacion,
+                    id_paciente,
+                    id_estancia,
+                    id_area
+                )
+                if result is True:
+                    flash("Hospitalización registrada correctamente!", "success")
+                else:
+                    flash(f"Error: {result}", "danger")
+            except Exception as e:
+                flash(f"Error de datos al registrar hospitalización: {e}", "danger")
+
 
         # ACTUALIZAR
         if 'update' in request.form:
@@ -876,14 +925,42 @@ def gestion_facturas():
                 # Puede venir como "2 - Regina Valenzuela"
                 raw_paciente = request.form.get("id_paciente", "")
                 id_paciente_str = extraer_id(raw_paciente)
-                id_paciente = int(id_paciente_str)
 
-                fecha_emision = request.form.get("fecha_emision")
+                if not id_paciente_str:
+                    flash("Debes seleccionar un paciente válido para la factura.", "danger")
+                    return redirect(url_for("gestion_facturas"))
+
+                try:
+                    id_paciente = int(id_paciente_str)
+                except ValueError:
+                    flash("El identificador del paciente no es válido.", "danger")
+                    return redirect(url_for("gestion_facturas"))
+
+                fecha_emision = (request.form.get("fecha_emision") or "").strip()
+                if not fecha_emision:
+                    flash("La fecha de emisión es obligatoria.", "danger")
+                    return redirect(url_for("gestion_facturas"))
+
                 fecha_vencimiento = request.form.get("fecha_vencimiento") or None
-                estado = request.form.get("estado") or "Pendiente"
+
+                estado = (request.form.get("estado") or "Pendiente").strip()
+                if estado not in ["Pendiente", "Pagada", "Cancelada", "Parcial"]:
+                    flash("El estado de la factura no es válido.", "danger")
+                    return redirect(url_for("gestion_facturas"))
+
                 metodo_pago_preferido = request.form.get("metodo_pago_preferido") or None
                 observaciones = request.form.get("observaciones") or None
-                total_neto = float(request.form.get("total_neto") or 0)
+
+                total_neto_str = request.form.get("total_neto") or "0"
+                try:
+                    total_neto = float(total_neto_str)
+                except ValueError:
+                    flash("El monto total de la factura debe ser numérico.", "danger")
+                    return redirect(url_for("gestion_facturas"))
+
+                if total_neto < 0:
+                    flash("El monto total de la factura debe ser mayor o igual a cero.", "danger")
+                    return redirect(url_for("gestion_facturas"))
 
                 resultado = create_factura(
                     id_paciente,
@@ -898,10 +975,10 @@ def gestion_facturas():
                 if resultado is True:
                     flash("Factura creada correctamente.", "success")
                 else:
-                    flash(f"Error BD al crear factura: {resultado}", "danger")
-
+                    flash(f"Error al crear factura: {resultado}", "danger")
             except Exception as e:
-                flash(f"Error al procesar la factura: {e}", "danger")
+                flash(f"Error de datos al crear factura: {e}", "danger")
+
 
             return redirect(url_for("gestion_facturas"))
 
@@ -1735,11 +1812,25 @@ def gestion_usuarios():
         # CREAR
         if 'create_usuario' in request.form:
             try:
-                username = request.form['username']
-                password = request.form['password']
-                rol = request.form['rol']
-                id_empleado = request.form.get('id_empleado') or None
+                username = (request.form.get('username') or '').strip()
+                if not username:
+                    flash('El nombre de usuario es obligatorio.', 'danger')
+                    return redirect(url_for('gestion_usuarios'))
 
+                password = (request.form.get('password') or '').strip()
+                if not password:
+                    flash('La contraseña es obligatoria.', 'danger')
+                    return redirect(url_for('gestion_usuarios'))
+                if len(password) < 6:
+                    flash('La contraseña debe tener al menos 6 caracteres.', 'danger')
+                    return redirect(url_for('gestion_usuarios'))
+
+                rol = (request.form.get('rol') or '').strip()
+                if rol not in ['admin', 'medico', 'enfermera', 'administrativo']:
+                    flash('El rol seleccionado no es válido.', 'danger')
+                    return redirect(url_for('gestion_usuarios'))
+
+                id_empleado = request.form.get('id_empleado') or None
                 if id_empleado == "":
                     id_empleado = None
 
@@ -1752,6 +1843,7 @@ def gestion_usuarios():
 
             except Exception as e:
                 flash(f'Error de datos al crear usuario: {e}', 'danger')
+
 
         # ACTUALIZAR
         elif 'update_usuario' in request.form:
