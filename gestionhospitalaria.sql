@@ -13613,7 +13613,7 @@ CREATE TABLE `paciente` (
   `id_paciente` int(11) NOT NULL,
   `nombre_completo` varchar(200) NOT NULL,
   `domicilio` varchar(255) DEFAULT NULL,
-  `telefono` bigint(20) NOT NULL,
+  `telefono` bigint(12) NOT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
   `genero` varchar(50) DEFAULT NULL,
   `seguro_medico` varchar(100) DEFAULT NULL
