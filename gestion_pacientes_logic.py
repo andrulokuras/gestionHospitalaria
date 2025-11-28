@@ -68,6 +68,8 @@ def read_pacientes(filtro_nombre=None, filtro_seguro=None):
 def update_paciente(id_paciente, nombre_completo, fecha_nacimiento, genero, domicilio, telefono, seguro_medico):
     conn = None
     try:
+        telefono = "".join(c for c in str(telefono) if c.isdigit())
+        telefono = telefono[:12]
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         query = """
