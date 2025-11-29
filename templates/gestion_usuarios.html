@@ -49,18 +49,13 @@
           <label class="form-label">
             Rol <span class="text-danger">*</span>
           </label>
-          <select name="id_empleado"
-                  class="form-select"
-                  data-required="true"
-                  required>
-            <option value="" disabled selected>Selecciona empleado</option>
-            {% for e in empleados %}
-              <option value="{{ e['id_empleado'] }}">
-                {{ e['id_empleado'] }} - {{ e['nombre'] }}
-              </option>
-            {% endfor %}
+          <select name="rol" class="form-select" data-required="true" required>
+            <option value="" disabled selected>Selecciona rol</option>
+            <option value="admin">admin</option>
+            <option value="medico">medico</option>
+            <option value="enfermera">enfermera</option>
+            <option value="administrativo">administrativo</option>
           </select>
-
         </div>
 
         <!-- Empleado asociado (opcional) -->
@@ -219,4 +214,3 @@
 </div>
 
 {% endblock %}
-
