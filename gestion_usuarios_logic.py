@@ -129,3 +129,32 @@ def delete_usuario(id_usuario):
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+
+#  NUEVO: leer empleados para el select de usuarios
+def read_empleados():
+    """
+    Devuelve lista de tuplas (id_empleado, nombre) desde la tabla EMPLEADO.
+    Se usa para poblar el <select> de empleados en la vista de usuarios.
+    """
+    conn = None
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()  # tuplas
+
+        query = "SELECT id_empleado, nombre FROM empleado ORDER BY nombre"
+        cursor.execute(query)
+
+        empleados = cursor.fetchall()   # [(1, 'Juan'), (2, 'Ana'), ...]
+        print("DEBUG read_empleados:", empleados)
+        return empleados
+
+    except mysql.connector.Error as err:
+        print("Error en read_empleados:", err)
+        return []
+
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
