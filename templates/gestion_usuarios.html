@@ -49,30 +49,38 @@
           <label class="form-label">
             Rol <span class="text-danger">*</span>
           </label>
-          <select name="rol" class="form-select" data-required="true">
-            <option value="" disabled selected>Selecciona rol</option>
-            <option value="admin">admin</option>
-            <option value="medico">medico</option>
-            <option value="enfermera">enfermera</option>
-            <option value="administrativo">administrativo</option>
+          <select name="id_empleado"
+                  class="form-select"
+                  data-required="true"
+                  required>
+            <option value="" disabled selected>Selecciona empleado</option>
+            {% for e in empleados %}
+              <option value="{{ e['id_empleado'] }}">
+                {{ e['id_empleado'] }} - {{ e['nombre'] }}
+              </option>
+            {% endfor %}
           </select>
+
         </div>
 
         <!-- Empleado asociado (opcional) -->
         <div class="col-md-3">
           <label class="form-label">
-            Empleado (opcional)
+            Empleado <span class="text-danger">*</span>
           </label>
-          <select name="id_empleado" class="form-select">
-            <option value="">Sin empleado asociado</option>
+          <select name="id_empleado"
+                  class="form-select"
+                  data-required="true"
+                  required>
+            <option value="" disabled selected>Selecciona empleado</option>
             {% for e in empleados %}
-              <option value="{{ e[0] }}">
-                {{ e[0] }} - {{ e[1] }}
+              <option value="{{ e.id_empleado }}">
+                {{ e.id_empleado }} - {{ e.nombre }}
               </option>
             {% endfor %}
           </select>
         </div>
-      </div>
+
 
       <div class="mt-3">
         <button type="submit" class="btn btn-success">
@@ -143,7 +151,7 @@
               <td>{{ u.rol }}</td>
               <td>
                 {% if u.id_empleado %}
-                  {{ u.id_empleado }} - {{ u.nombre_empleado or 'Sin nombre' }}
+                  {{ u.id_empleado }} - {{ u.nombre or 'Sin nombre' }}
                 {% else %}
                   <span class="text-muted">Sin empleado asociado</span>
                 {% endif %}
@@ -211,3 +219,4 @@
 </div>
 
 {% endblock %}
+
