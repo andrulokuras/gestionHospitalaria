@@ -1812,36 +1812,54 @@ def descargar_facturas_por_estado_csv():
     resp.headers["Content-Type"] = "text/csv; charset=utf-8"
     return resp
 
+# ============================
 # GESTIÓN DE USUARIOS (solo admin)
+# ============================
 @app.route('/usuarios', methods=['GET', 'POST'])
 @requiere_roles('admin')
 def gestion_usuarios():
     if request.method == 'POST':
-        # CREAR
+
+        # -----------------------------------
+        # CREAR USUARIO
+        # -----------------------------------
         if 'create_usuario' in request.form:
             try:
+                # Username
                 username = (request.form.get('username') or '').strip()
                 if not username:
                     flash('El nombre de usuario es obligatorio.', 'danger')
                     return redirect(url_for('gestion_usuarios'))
 
+                # Password
                 password = (request.form.get('password') or '').strip()
                 if not password:
                     flash('La contraseña es obligatoria.', 'danger')
                     return redirect(url_for('gestion_usuarios'))
+
                 if len(password) < 6:
                     flash('La contraseña debe tener al menos 6 caracteres.', 'danger')
                     return redirect(url_for('gestion_usuarios'))
 
+                # Rol
                 rol = (request.form.get('rol') or '').strip()
                 if rol not in ['admin', 'medico', 'enfermera', 'administrativo']:
                     flash('El rol seleccionado no es válido.', 'danger')
                     return redirect(url_for('gestion_usuarios'))
 
-                id_empleado = request.form.get('id_empleado') or None
-                if id_empleado == "":
-                    id_empleado = None
+                # Empleado (OBLIGATORIO)
+                id_empleado_str = (request.form.get('id_empleado') or '').strip()
+                if not id_empleado_str:
+                    flash('Debes seleccionar un empleado.', 'danger')
+                    return redirect(url_for('gestion_usuarios'))
 
+                try:
+                    id_empleado = int(id_empleado_str)
+                except ValueError:
+                    flash('El empleado seleccionado no es válido.', 'danger')
+                    return redirect(url_for('gestion_usuarios'))
+
+                # Crear usuario en BD
                 resultado = create_usuario(username, password, rol, id_empleado)
 
                 if resultado is True:
@@ -1852,18 +1870,26 @@ def gestion_usuarios():
             except Exception as e:
                 flash(f'Error de datos al crear usuario: {e}', 'danger')
 
-
-        # ACTUALIZAR
+        # -----------------------------------
+        # ACTUALIZAR USUARIO
+        # -----------------------------------
         elif 'update_usuario' in request.form:
             try:
                 id_usuario = request.form['id_usuario_actualizar']
                 username = request.form['username_edit']
                 password = request.form['password_edit']
                 rol = request.form['rol_edit']
-                id_empleado = request.form.get('id_empleado_edit') or None
 
-                if id_empleado == "":
+                # Empleado al editar (puede quedar vacío ⇒ None)
+                id_empleado_edit = (request.form.get('id_empleado_edit') or '').strip()
+                if id_empleado_edit == '':
                     id_empleado = None
+                else:
+                    try:
+                        id_empleado = int(id_empleado_edit)
+                    except ValueError:
+                        flash('El empleado seleccionado no es válido.', 'danger')
+                        return redirect(url_for('gestion_usuarios'))
 
                 resultado = update_usuario(
                     id_usuario, username, password, rol, id_empleado
@@ -1877,7 +1903,9 @@ def gestion_usuarios():
             except Exception as e:
                 flash(f'Error de datos al actualizar usuario: {e}', 'danger')
 
-        # ELIMINAR
+        # -----------------------------------
+        # ELIMINAR USUARIO
+        # -----------------------------------
         elif 'delete_usuario' in request.form:
             try:
                 id_usuario = request.form['id_usuario_eliminar']
@@ -1891,18 +1919,22 @@ def gestion_usuarios():
             except Exception as e:
                 flash(f'Error de eliminación de usuario: {e}', 'danger')
 
+        # Después de cualquier POST
         return redirect(url_for('gestion_usuarios'))
 
-    # GET: filtros
-    filtro_username = request.args.get('buscar_username', '').strip()
-    filtro_rol = request.args.get('buscar_rol', '').strip()
+    # ===============================
+    # GET: filtros y carga de datos
+    # ===============================
+    filtro_username = (request.args.get('buscar_username') or '').strip()
+    filtro_rol = (request.args.get('buscar_rol') or '').strip()
 
+    # Usuarios para la tabla
     usuarios = read_usuarios(
         filtro_username=filtro_username or None,
         filtro_rol=filtro_rol or None
     )
 
-    # Para el select de empleados (opcional)
+    # Empleados para el select (vienen de la tabla `empleado`)
     empleados = read_empleados(
         filtro_nombre=None,
         filtro_tipo=None
