@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 # Importa las funciones CRUD desde la lógica
-from gestion_empleados_logica import create_empleado, read_empleados, update_empleado, delete_empleado
+from gestion_empleados_logic import create_empleado, read_empleados, update_empleado, delete_empleado
 
 # --- LÓGICA DE LA GUI ---
 

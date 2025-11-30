@@ -63,16 +63,12 @@
           <label class="form-label">
             Empleado (opcional)
           </label>
-          <select name="id_empleado" class="form-select">
-            <option value="">Sin empleado asociado</option>
-            {% for e in empleados %}
-              <option value="{{ e[0] }}">
-                {{ e[0] }} - {{ e[1] }}
-              </option>
-            {% endfor %}
-          </select>
+          <input
+            list="listaEmpleadosUsuario"
+            name="id_empleado"
+            class="form-control"
+            placeholder="Sin empleado o ej: 3 - Juan Pérez">
         </div>
-      </div>
 
       <div class="mt-3">
         <button type="submit" class="btn btn-success">
@@ -169,15 +165,13 @@
                       <option value="administrativo" {% if u.rol == 'administrativo' %}selected{% endif %}>administrativo</option>
                     </select>
 
-                    <select name="id_empleado_edit" class="form-select">
-                      <option value="">Sin empleado</option>
-                      {% for e in empleados %}
-                        <option value="{{ e[0] }}"
-                          {% if u.id_empleado == e[0] %}selected{% endif %}>
-                          {{ e[0] }} - {{ e[1] }}
-                        </option>
-                      {% endfor %}
-                    </select>
+                    <input
+                      list="listaEmpleadosUsuario"
+                      name="id_empleado_edit"
+                      class="form-control"
+                      placeholder="Sin empleado o ej: 3 - Juan Pérez"
+                      value="{% if u.id_empleado %}{{ u.id_empleado }} - {{ u.nombre_empleado or 'Sin nombre' }}{% endif %}">
+
                   </div>
 
                   <button type="submit" class="btn btn-sm btn-warning">
@@ -209,5 +203,10 @@
     </table>
   </div>
 </div>
+<datalist id="listaEmpleadosUsuario">
+  {% for e in empleados %}
+    <option value="{{ e.id_empleado }} - {{ e.nombre }}"></option>
+  {% endfor %}
+</datalist>
 
 {% endblock %}

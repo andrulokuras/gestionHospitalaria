@@ -100,23 +100,30 @@ def index():
 
     # Redirección según rol
     if rol == 'admin':
-        return redirect(url_for('gestion_empleados'))
+        return redirect(url_for('home'))
 
     elif rol == 'medico':
         # El médico entra directo a Pacientes
-        return redirect(url_for('gestion_pacientes'))
+        return redirect(url_for('home'))
 
     elif rol == 'enfermera':
         # La enfermera también entra a Pacientes
-        return redirect(url_for('gestion_pacientes'))
+        return redirect(url_for('home'))
 
     elif rol == 'administrativo':
         # Administrativo directamente a Hospitalizaciones
-        return redirect(url_for('gestion_hospitalizaciones'))
+        return redirect(url_for('home'))
 
     # Rol raro / error
     flash("Rol no reconocido, inicia sesión de nuevo.", "danger")
     return redirect(url_for('login'))
+
+# HOME GENERAL PARA TODOS LOS USUARIOS
+@app.route('/home')
+@requiere_roles('admin', 'medico', 'enfermera', 'administrativo')
+def home():
+    rol = session.get('rol')
+    return render_template('home.html', rol=rol)
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
@@ -141,7 +148,7 @@ def login():
 
     # Si ya está logueado, mandarlo directo a empleados
     if 'user_id' in session:
-        return redirect(url_for('gestion_empleados'))
+        return redirect(url_for('home'))
 
     return render_template('login.html')
 
@@ -1820,26 +1827,15 @@ def gestion_usuarios():
         # CREAR
         if 'create_usuario' in request.form:
             try:
-                username = (request.form.get('username') or '').strip()
-                if not username:
-                    flash('El nombre de usuario es obligatorio.', 'danger')
-                    return redirect(url_for('gestion_usuarios'))
+                username = request.form['username']
+                password = request.form['password']
+                rol = request.form['rol']
 
-                password = (request.form.get('password') or '').strip()
-                if not password:
-                    flash('La contraseña es obligatoria.', 'danger')
-                    return redirect(url_for('gestion_usuarios'))
-                if len(password) < 6:
-                    flash('La contraseña debe tener al menos 6 caracteres.', 'danger')
-                    return redirect(url_for('gestion_usuarios'))
-
-                rol = (request.form.get('rol') or '').strip()
-                if rol not in ['admin', 'medico', 'enfermera', 'administrativo']:
-                    flash('El rol seleccionado no es válido.', 'danger')
-                    return redirect(url_for('gestion_usuarios'))
-
-                id_empleado = request.form.get('id_empleado') or None
-                if id_empleado == "":
+                # Empleado asociado (opcional), viene como "3 - Juan Pérez" o vacío
+                raw_empleado = (request.form.get('id_empleado') or '').strip()
+                if raw_empleado:
+                    id_empleado = extraer_id(raw_empleado)
+                else:
                     id_empleado = None
 
                 resultado = create_usuario(username, password, rol, id_empleado)
@@ -1853,6 +1849,7 @@ def gestion_usuarios():
                 flash(f'Error de datos al crear usuario: {e}', 'danger')
 
 
+
         # ACTUALIZAR
         elif 'update_usuario' in request.form:
             try:
@@ -1860,9 +1857,12 @@ def gestion_usuarios():
                 username = request.form['username_edit']
                 password = request.form['password_edit']
                 rol = request.form['rol_edit']
-                id_empleado = request.form.get('id_empleado_edit') or None
 
-                if id_empleado == "":
+                # Empleado asociado (opcional), viene como "3 - Juan Pérez" o vacío
+                raw_empleado_edit = (request.form.get('id_empleado_edit') or '').strip()
+                if raw_empleado_edit:
+                    id_empleado = extraer_id(raw_empleado_edit)
+                else:
                     id_empleado = None
 
                 resultado = update_usuario(
@@ -1876,6 +1876,7 @@ def gestion_usuarios():
 
             except Exception as e:
                 flash(f'Error de datos al actualizar usuario: {e}', 'danger')
+
 
         # ELIMINAR
         elif 'delete_usuario' in request.form:

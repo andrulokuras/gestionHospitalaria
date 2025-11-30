@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Sistema de Gestión Hospitalaria{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Bienvenido(a) al Sistema Integral de Gestión Hospitalaria</h1>
+            <p class="text-muted mb-0">
+                Esta página te ofrece una guía rápida para entender cómo usar la aplicación y dónde encontrar cada función principal.
+            </p>
+        </div>
+    </div>
+
+    <!-- Tarjeta: Primeros pasos -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-compass"></i> Primeros pasos
+                </div>
+                <div class="card-body">
+                    <ol class="mb-2">
+                        <li><strong>Revisa el menú superior:</strong> las opciones visibles dependen de tu rol (admin, médico, enfermera, administrativo).</li>
+                        <li><strong>Consulta los pacientes registrados:</strong> desde el menú <strong>Pacientes</strong> puedes buscar y gestionar la información básica.</li>
+                        <li><strong>Explora los módulos clínicos:</strong> hospitalizaciones, tratamientos, procedimientos y estancias se encuentran en sus secciones correspondientes.</li>
+                        <li><strong>Si eres administrativo:</strong> utiliza los módulos de <strong>Inventario</strong>, <strong>Facturas</strong> y <strong>Reportes</strong> para el control financiero.</li>
+                    </ol>
+                    <p class="mb-0">
+                        En cualquier momento, puedes regresar a esta página desde el menú principal (opción <strong>Inicio</strong> si está configurada, o escribiendo <code>/home</code> en la barra de direcciones).
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta: Tu rol en el sistema -->
+        <div class="col-lg-6 mt-3 mt-lg-0">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <i class="bi bi-person-badge"></i> Tu rol en el sistema
+                </div>
+                <div class="card-body">
+                    {% if rol == 'admin' %}
+                        <p>
+                            <strong>Rol actual: Administrador.</strong> Tienes acceso completo al sistema:
+                        </p>
+                        <ul>
+                            <li>Gestión de pacientes, empleados y usuarios.</li>
+                            <li>Configuración de roles y accesos.</li>
+                            <li>Módulos clínicos y administrativos.</li>
+                            <li>Reportes y descarga de información en CSV.</li>
+                        </ul>
+                    {% elif rol == 'medico' %}
+                        <p>
+                            <strong>Rol actual: Médico.</strong> Desde tu sesión puedes:
+                        </p>
+                        <ul>
+                            <li>Consultar y actualizar información de pacientes.</li>
+                            <li>Registrar y revisar hospitalizaciones, tratamientos y procedimientos.</li>
+                            <li>Visualizar reportes clínicos y de productividad médica.</li>
+                        </ul>
+                    {% elif rol == 'enfermera' %}
+                        <p>
+                            <strong>Rol actual: Enfermera.</strong> Desde tu sesión puedes:
+                        </p>
+                        <ul>
+                            <li>Consultar y actualizar datos de pacientes.</li>
+                            <li>Registrar estancias, procedimientos y seguimientos básicos.</li>
+                            <li>Apoyar al equipo médico en la gestión diaria del paciente.</li>
+                        </ul>
+                    {% elif rol == 'administrativo' %}
+                        <p>
+                            <strong>Rol actual: Administrativo.</strong> Desde tu sesión puedes:
+                        </p>
+                        <ul>
+                            <li>Gestionar inventario y existencias.</li>
+                            <li>Crear y administrar facturas y pagos.</li>
+                            <li>Consultar reportes administrativos y financieros.</li>
+                        </ul>
+                    {% else %}
+                        <p>
+                            Tu rol no ha sido identificado, pero puedes navegar por las opciones visibles en el menú superior.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas: Módulos principales -->
+    <div class="row mb-4">
+        <div class="col-12 mb-2">
+            <h2 class="h5">Resumen de módulos principales</h2>
+            <p class="text-muted">
+                Solo se muestran los módulos a los que tienes acceso con tu rol actual.
+            </p>
+        </div>
+
+        {# Helper para no repetir: es_admin #}
+        {% set es_admin = (rol == 'admin') %}
+
+        {# PACIENTES – todos los roles #}
+        {% if rol in ['admin', 'medico', 'administrativo', 'enfermera'] %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people-fill me-1"></i> Pacientes
+                    </h5>
+                    <p class="card-text">
+                        Registro, consulta y actualización de la información general de los pacientes.
+                        Incluye filtros de búsqueda por nombre.
+                    </p>
+                    <a href="{{ url_for('gestion_pacientes') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Pacientes
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# CITAS – admin, médico, administrativo #}
+        {% if es_admin or rol in ['medico', 'administrativo'] %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-event me-1"></i> Citas
+                    </h5>
+                    <p class="card-text">
+                        Programación y gestión de citas entre pacientes y médicos, con motivo y estado de cada cita.
+                    </p>
+                    <a href="{{ url_for('gestion_citas') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Citas
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# HISTORIAL CLÍNICO – admin, médico, enfermera #}
+        {% if es_admin or rol in ['medico', 'enfermera'] %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-journal-medical me-1"></i> Historial clínico
+                    </h5>
+                    <p class="card-text">
+                        Vista maestra para consultar el historial clínico completo de los pacientes,
+                        incluyendo hospitalizaciones, tratamientos y procedimientos.
+                    </p>
+                    <a href="{{ url_for('lista_historial') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Historial clínico
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# HOSPITALIZACIONES – admin, médico, enfermera, administrativo #}
+        {% if es_admin or rol in ['medico', 'enfermera', 'administrativo'] %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-hospital me-1"></i> Hospitalizaciones
+                    </h5>
+                    <p class="card-text">
+                        Registro y seguimiento de ingresos hospitalarios, áreas asignadas, estancias y motivo de ingreso.
+                    </p>
+                    <a href="{{ url_for('gestion_hospitalizaciones') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Hospitalizaciones
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# ESTANCIAS – admin, médico, enfermera #}
+        {% if es_admin or rol in ['medico', 'enfermera'] %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-door-open me-1"></i> Estancias
+                    </h5>
+                    <p class="card-text">
+                        Gestión de estancias hospitalarias, tipos de estancia y relación con áreas específicas.
+                    </p>
+                    <a href="{{ url_for('gestion_estancias') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Estancias
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# TRATAMIENTOS – admin, médico, enfermera #}
+        {% if es_admin or rol in ['medico', 'enfermera'] %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-clipboard2-pulse me-1"></i> Tratamientos
+                    </h5>
+                    <p class="card-text">
+                        Registro de tratamientos indicados a los pacientes y vinculación con hospitalizaciones y personal.
+                    </p>
+                    <a href="{{ url_for('gestion_tratamientos') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Tratamientos
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# PROCEDIMIENTOS – admin, médico #}
+        {% if es_admin or rol == 'medico' %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-activity me-1"></i> Procedimientos
+                    </h5>
+                    <p class="card-text">
+                        Registro de procedimientos realizados a los pacientes, costos y relación con tratamientos.
+                    </p>
+                    <a href="{{ url_for('gestion_procedimientos') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Procedimientos
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# INVENTARIO – admin, enfermera #}
+        {% if es_admin or rol == 'enfermera' %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-box-seam me-1"></i> Inventario
+                    </h5>
+                    <p class="card-text">
+                        Control de insumos y recursos del hospital: tipo de artículo, cantidad y precio unitario,
+                        con filtros para búsqueda rápida.
+                    </p>
+                    <a href="{{ url_for('gestion_inventario') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Inventario
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# ÁREAS – admin, administrativo #}
+        {% if es_admin or rol == 'administrativo' %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-diagram-3 me-1"></i> Áreas
+                    </h5>
+                    <p class="card-text">
+                        Administración de áreas específicas del hospital y su relación con estancias y hospitalizaciones.
+                    </p>
+                    <a href="{{ url_for('gestion_areas') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Áreas
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# FACTURAS – admin, administrativo #}
+        {% if es_admin or rol == 'administrativo' %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-receipt me-1"></i> Facturación y pagos
+                    </h5>
+                    <p class="card-text">
+                        Registro de facturas, pagos asociados y estados de cuenta de los pacientes.
+                    </p>
+                    <a href="{{ url_for('gestion_facturas') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Facturación
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# ASIGNACIONES – admin, administrativo #}
+        {% if es_admin or rol == 'administrativo' %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people-gear me-1"></i> Asignaciones
+                    </h5>
+                    <p class="card-text">
+                        Gestión de asignaciones de empleados a áreas y turnos, apoyando la planeación operativa.
+                    </p>
+                    <a href="{{ url_for('gestion_asignaciones') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Asignaciones
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# REPORTES Y ANALÍTICA – admin, administrativo #}
+        {% if es_admin or rol == 'administrativo' %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-graph-up-arrow me-1"></i> Reportes y analítica
+                    </h5>
+                    <p class="card-text">
+                        Informes clínicos, de ocupación, productividad y gestión administrativa,
+                        con opción de descarga en CSV para análisis externo.
+                    </p>
+                    <a href="{{ url_for('reportes') }}" class="btn btn-sm btn-outline-primary">
+                        Ir a Reportes
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# USUARIOS Y ROLES – solo admin #}
+        {% if es_admin %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-shield-lock me-1"></i> Usuarios y roles
+                    </h5>
+                    <p class="card-text">
+                        Módulo exclusivo para administradores. Permite crear usuarios, asignar roles
+                        y controlar el acceso al sistema.
+                    </p>
+                    <a href="{{ url_for('gestion_usuarios') }}" class="btn btn-sm btn-outline-warning">
+                        Ir a Usuarios y Roles
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+
+    <!-- Consejos finales -->
+    <div class="row">
+        <div class="col">
+            <div class="alert alert-info">
+                <h5 class="alert-heading">Consejos de uso</h5>
+                <ul class="mb-1">
+                    <li>Utiliza los filtros de búsqueda en cada módulo para encontrar información más rápido.</li>
+                    <li>Revisa el módulo de <strong>Reportes</strong> para obtener una visión global del estado clínico y administrativo.</li>
+                    <li>Si eres administrador, mantén actualizados los usuarios y roles para asegurar un acceso adecuado al sistema.</li>
+                </ul>
+                <p class="mb-0">
+                    Si tienes dudas sobre algún módulo, regresa a esta página de inicio para ver el resumen general.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
