@@ -1,3 +1,11 @@
+# Parte del contenido de este módulo, incluyendo la estructura de las funciones
+# de resumen y estadísticas, así como el manejo de conexiones a la base de datos,
+# fue generado y asistido mediante ChatGPT (OpenAI, versión GPT-5.1).
+#
+# El código fue posteriormente revisado, adaptado y ampliado por el estudiante
+# para ajustarse al modelo del proyecto, a las métricas requeridas y al correcto
+# funcionamiento dentro del sistema.
+
 import mysql.connector
 from db_connection import DB_CONFIG
 
