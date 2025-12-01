@@ -1,4 +1,11 @@
-# gestion_usuarios_logic.py
+# Parte del contenido de este módulo, incluyendo la estructura base de las 
+# funciones CRUD y el manejo de conexiones con la base de datos, fue generado 
+# y asistido mediante ChatGPT (OpenAI, versión GPT-5.1).
+#
+# El código fue posteriormente revisado, adaptado y ampliado por el estudiante
+# para ajustarse al funcionamiento requerido dentro del sistema y a la 
+# administración de usuarios del proyecto.
+
 import mysql.connector
 from db_connection import DB_CONFIG
 
