@@ -1,3 +1,9 @@
+# Parte del código, incluyendo la estructura de rutas, validaciones del servidor,
+# manejo de sesiones, control de acceso por roles y el flujo general del CRUD,
+# fue generado y asistido mediante ChatGPT (OpenAI, versión GPT-5.1).
+# Posteriormente, el código fue revisado, adaptado y personalizado por el estudiante
+# para cumplir con los requerimientos específicos del proyecto y su entorno de ejecución.
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
 import csv
 import io
