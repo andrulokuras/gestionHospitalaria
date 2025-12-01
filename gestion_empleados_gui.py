@@ -1,4 +1,11 @@
-# gestion_empleados_gui.py
+# Parte del contenido de este módulo, incluyendo la estructura base del CRUD,
+# el manejo de conexiones con la base de datos y la sanitización de datos de entrada,
+# fue generado y asistido mediante ChatGPT (OpenAI, versión GPT-5.1).
+#
+# El código fue posteriormente revisado, adaptado y ampliado por el estudiante
+# para ajustarse al modelo del proyecto y asegurar su correcto funcionamiento
+# dentro del sistema.
+
 import tkinter as tk
 from tkinter import messagebox, ttk
 # Importa las funciones CRUD desde la lógica
