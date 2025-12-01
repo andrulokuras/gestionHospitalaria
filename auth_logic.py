@@ -1,3 +1,11 @@
+# Parte del contenido de este módulo, incluyendo la estructura de las funciones 
+# relacionadas con la validación de credenciales, manejo de sesiones básicas y 
+# creación de usuarios, fue generado y asistido mediante ChatGPT (OpenAI, versión GPT-5.1).
+#
+# El código fue posteriormente revisado, adaptado y ampliado por el estudiante
+# para ajustarse al funcionamiento del sistema y a la integración con el módulo 
+# de autenticación del proyecto.
+
 import mysql.connector
 from db_connection import DB_CONFIG
 
