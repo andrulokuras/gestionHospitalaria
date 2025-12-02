@@ -1,3 +1,5 @@
+-- El conjunto de datos masivos (~1000 registros) utilizados para poblar esta tabla 
+-- fue generado con asistencia de ChatGPT (OpenAI, GPT-5.1)
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
