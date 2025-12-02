@@ -21,7 +21,7 @@ def create_estancia(medico_responsable, hora, id_procedimientos):
         cursor = conn.cursor()
 
         query = """
-        INSERT INTO DE_ESTANCIA (id_medico_responsable, hora, id_procedimientos)
+        INSERT INTO de_estancia (id_medico_responsable, hora, id_procedimientos)
         VALUES (%s, %s, %s)
         """
         valores = (medico_responsable, hora, id_procedimientos)

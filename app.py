@@ -7,7 +7,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
 import csv
 import io
-
+from datetime import datetime, date
 
 
 # 1. IMPORTACIONES DE LÓGICA (TODAS AL PRINCIPIO)
@@ -254,6 +254,15 @@ def gestion_pacientes():
                 if not fecha_nacimiento:
                     flash('La fecha de nacimiento es obligatoria.', 'danger')
                     return redirect(url_for('gestion_pacientes'))
+                try:
+                    fecha_nac_date = datetime.strptime(fecha_nacimiento, "%Y-%m-%d").date()
+                except ValueError:
+                    flash('La fecha de nacimiento no tiene un formato válido.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+
+                if fecha_nac_date > date.today():
+                    flash('La fecha de nacimiento no puede ser una fecha futura.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
 
                 genero = (request.form.get('genero') or '').strip()
                 if not genero:
@@ -316,6 +325,25 @@ def gestion_pacientes():
                 domicilio = request.form['direccion_edit']
                 telefono = request.form['telefono_edit']
                 seguro_medico = request.form['seguro_medico_edit']
+                telefono = "".join(c for c in telefono if c.isdigit())
+
+                if telefono and len(telefono) > 12:
+                    flash('El teléfono no puede tener más de 12 dígitos.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+
+                if telefono and len(telefono) < 8:
+                    flash('El teléfono debe tener al menos 8 dígitos.', 'danger')
+                    return redirect(url_for('gestion_pacientes'))
+                if fecha_nacimiento:
+                    try:
+                        fecha_nac_date = datetime.strptime(fecha_nacimiento, "%Y-%m-%d").date()
+                    except ValueError:
+                        flash('La fecha de nacimiento no tiene un formato válido.', 'danger')
+                        return redirect(url_for('gestion_pacientes'))
+
+                    if fecha_nac_date > date.today():
+                        flash('La fecha de nacimiento no puede ser una fecha futura.', 'danger')
+                        return redirect(url_for('gestion_pacientes'))
                 resultado = update_paciente(id_paciente, nombre_completo, fecha_nacimiento, genero, domicilio, telefono, seguro_medico)
                 
                 if resultado is True:
@@ -727,8 +755,39 @@ def gestion_hospitalizaciones():
                     return redirect(url_for('gestion_hospitalizaciones'))
 
                 # Opcionales
-                fecha_egreso = request.form.get('fecha_egreso') or None
+                fecha_egreso = (request.form.get('fecha_egreso') or '').strip() or None
                 motivo = request.form.get('motivo') or None
+
+                # ==========
+                # VALIDACIONES DE FECHAS
+                # ==========
+
+                # Validar formato y que ingreso no sea futuro
+                try:
+                    fecha_ingreso_date = datetime.strptime(fecha_ingreso, "%Y-%m-%d").date()
+                except ValueError:
+                    flash('La fecha de ingreso no tiene un formato válido.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
+
+                if fecha_ingreso_date > date.today():
+                    flash('La fecha de ingreso no puede ser en el futuro.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
+
+                # Validar egreso solo si viene
+                if fecha_egreso:
+                    try:
+                        fecha_egreso_date = datetime.strptime(fecha_egreso, "%Y-%m-%d").date()
+                    except ValueError:
+                        flash('La fecha de egreso no tiene un formato válido.', 'danger')
+                        return redirect(url_for('gestion_hospitalizaciones'))
+
+                    if fecha_egreso_date < fecha_ingreso_date:
+                        flash('La fecha de egreso no puede ser menor que la fecha de ingreso.', 'danger')
+                        return redirect(url_for('gestion_hospitalizaciones'))
+
+                # ==========
+                # RESTO DE DATOS
+                # ==========
 
                 # valores crudos: "2 - Regina Valenzuela", etc.
                 raw_paciente  = request.form.get('id_paciente', '')
@@ -764,35 +823,65 @@ def gestion_hospitalizaciones():
                     flash("Hospitalización registrada correctamente!", "success")
                 else:
                     flash(f"Error: {result}", "danger")
+
             except Exception as e:
                 flash(f"Error de datos al registrar hospitalización: {e}", "danger")
 
-
         # ACTUALIZAR
         if 'update' in request.form:
-            # hacer opcionales fecha_egreso y motivo
-            fecha_egreso = request.form.get('fecha_egreso') or None
-            motivo = request.form.get('motivo') or None
+            try:
+                fecha_ingreso = (request.form.get('fecha_ingreso') or '').strip()
+                if not fecha_ingreso:
+                    flash('La fecha de ingreso es obligatoria.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
 
-            raw_paciente  = request.form.get('id_paciente', '')
-            raw_estancia  = request.form.get('id_estancia', '')
-            raw_area      = request.form.get('id_area', '')
+                fecha_egreso = request.form.get('fecha_egreso') or None
+                motivo = request.form.get('motivo') or None
 
-            id_paciente   = extraer_id(raw_paciente)
-            id_estancia   = extraer_id(raw_estancia)
-            id_area       = extraer_id(raw_area)
+                # 👇 NUEVO: validar ingreso y egreso
+                try:
+                    fecha_ingreso_date = datetime.strptime(fecha_ingreso, "%Y-%m-%d").date()
+                except ValueError:
+                    flash('La fecha de ingreso no tiene un formato válido.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
 
-            result = update_hospitalizacion(
-                request.form['id_hosp'],
-                request.form['fecha_ingreso'],
-                fecha_egreso,
-                motivo,
-                request.form.get('habitacion'),
-                id_paciente,
-                id_estancia,
-                id_area
-            )
-            flash("Hospitalización actualizada!", "success")
+                if fecha_ingreso_date > date.today():
+                    flash('La fecha de ingreso no puede ser en el futuro.', 'danger')
+                    return redirect(url_for('gestion_hospitalizaciones'))
+
+                if fecha_egreso:
+                    try:
+                        fecha_egreso_date = datetime.strptime(fecha_egreso, "%Y-%m-%d").date()
+                    except ValueError:
+                        flash('La fecha de egreso no tiene un formato válido.', 'danger')
+                        return redirect(url_for('gestion_hospitalizaciones'))
+
+                    if fecha_egreso_date < fecha_ingreso_date:
+                        flash('La fecha de egreso no puede ser menor que la fecha de ingreso.', 'danger')
+                        return redirect(url_for('gestion_hospitalizaciones'))
+
+                raw_paciente  = request.form.get('id_paciente', '')
+                raw_estancia  = request.form.get('id_estancia', '')
+                raw_area      = request.form.get('id_area', '')
+
+                id_paciente   = extraer_id(raw_paciente)
+                id_estancia   = extraer_id(raw_estancia)
+                id_area       = extraer_id(raw_area)
+
+                result = update_hospitalizacion(
+                    request.form['id_hosp'],
+                    fecha_ingreso,      # ya validada
+                    fecha_egreso,       # ya validada si existe
+                    motivo,
+                    request.form.get('habitacion'),
+                    id_paciente,
+                    id_estancia,
+                    id_area
+                )
+                flash("Hospitalización actualizada!", "success")
+            except Exception as e:
+                flash(f"Error al actualizar hospitalización: {e}", "danger")
+
 
         # ELIMINAR
         if 'delete' in request.form:
